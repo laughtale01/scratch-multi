@@ -65,3 +65,6 @@ coverage/
 # Documentation builds
 docs/_build/
 site/
+
+# Claude settings
+.claude/
