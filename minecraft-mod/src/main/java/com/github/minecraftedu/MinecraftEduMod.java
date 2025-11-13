@@ -1,6 +1,6 @@
 package com.github.minecraftedu;
 
-import com.github.minecraftedu.network.WebSocketServer;
+import com.github.minecraftedu.network.SimpleWebSocketServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
@@ -16,7 +16,7 @@ public class MinecraftEduMod {
     public static final String MOD_ID = "minecraftedu";
     public static final Logger LOGGER = LogManager.getLogger();
 
-    private WebSocketServer webSocketServer;
+    private SimpleWebSocketServer webSocketServer;
 
     public MinecraftEduMod() {
         MinecraftForge.EVENT_BUS.register(this);
@@ -34,7 +34,7 @@ public class MinecraftEduMod {
 
         try {
             // WebSocketサーバー起動
-            webSocketServer = new WebSocketServer(14711, event.getServer());
+            webSocketServer = new SimpleWebSocketServer(14711, event.getServer());
             webSocketServer.start();
 
             LOGGER.info("WebSocket server started on port 14711");

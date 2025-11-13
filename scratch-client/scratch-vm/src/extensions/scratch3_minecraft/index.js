@@ -9,6 +9,8 @@ class Scratch3MinecraftBlocks {
         this.socket = null;
         this.connected = false;
         this.sessionId = null;
+        this.pendingRequests = new Map();
+        this.requestTimeout = 5000;
     }
 
     getInfo() {
@@ -357,8 +359,29 @@ class Scratch3MinecraftBlocks {
      * プレイヤー位置取得
      */
     getPosition(args) {
-        // TODO: 実装（サーバーからの応答を待つ必要がある）
-        return 0;
+        const coord = args.COORD || 'x';
+
+        return this.sendCommandWithResponse('getPosition', {})
+            .then(response => {
+                if (response && response.payload && response.payload.result) {
+                    const result = response.payload.result;
+                    switch (coord) {
+                        case 'x':
+                            return result.x || 0;
+                        case 'y':
+                            return result.y || 0;
+                        case 'z':
+                            return result.z || 0;
+                        default:
+                            return 0;
+                    }
+                }
+                return 0;
+            })
+            .catch(error => {
+                console.error('getPosition error:', error);
+                return 0;
+            });
     }
 
     /**
@@ -413,6 +436,50 @@ class Scratch3MinecraftBlocks {
     }
 
     /**
+     * コマンド送信（応答待ち）
+     */
+    sendCommandWithResponse(action, params) {
+        if (!this.connected || !this.socket) {
+            console.warn('Not connected to Minecraft server');
+            return Promise.reject(new Error('Not connected'));
+        }
+
+        const messageId = this.generateUUID();
+
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                this.pendingRequests.delete(messageId);
+                reject(new Error('Request timeout'));
+            }, this.requestTimeout);
+
+            this.pendingRequests.set(messageId, {
+                resolve: (response) => {
+                    clearTimeout(timeoutId);
+                    this.pendingRequests.delete(messageId);
+                    resolve(response);
+                },
+                reject: (error) => {
+                    clearTimeout(timeoutId);
+                    this.pendingRequests.delete(messageId);
+                    reject(error);
+                }
+            });
+
+            this.sendMessageWithId(messageId, {
+                type: 'command',
+                payload: {
+                    action: action,
+                    params: params
+                }
+            }).catch(error => {
+                clearTimeout(timeoutId);
+                this.pendingRequests.delete(messageId);
+                reject(error);
+            });
+        });
+    }
+
+    /**
      * メッセージ送信
      */
     sendMessage(message) {
@@ -421,6 +488,29 @@ class Scratch3MinecraftBlocks {
                 const fullMessage = {
                     version: '1.0',
                     messageId: this.generateUUID(),
+                    timestamp: Date.now(),
+                    sessionId: this.sessionId || '',
+                    ...message
+                };
+
+                this.socket.send(JSON.stringify(fullMessage));
+                resolve();
+            } catch (error) {
+                console.error('Send error:', error);
+                reject(error);
+            }
+        });
+    }
+
+    /**
+     * メッセージ送信（messageId指定）
+     */
+    sendMessageWithId(messageId, message) {
+        return new Promise((resolve, reject) => {
+            try {
+                const fullMessage = {
+                    version: '1.0',
+                    messageId: messageId,
                     timestamp: Date.now(),
                     sessionId: this.sessionId || '',
                     ...message
@@ -449,10 +539,44 @@ class Scratch3MinecraftBlocks {
                 } else {
                     console.error('Connection failed:', message.payload.errorMessage);
                 }
+
+                // 保留中のリクエストを解決
+                if (message.requestId && this.pendingRequests.has(message.requestId)) {
+                    const pending = this.pendingRequests.get(message.requestId);
+                    if (message.payload.success) {
+                        pending.resolve(message);
+                    } else {
+                        pending.reject(new Error(message.payload.errorMessage || 'Connection failed'));
+                    }
+                }
                 break;
 
             case 'command_response':
                 console.log('Command result:', message.payload);
+
+                // 保留中のリクエストを解決
+                if (message.requestId && this.pendingRequests.has(message.requestId)) {
+                    const pending = this.pendingRequests.get(message.requestId);
+                    if (message.payload.success) {
+                        pending.resolve(message);
+                    } else {
+                        pending.reject(new Error(message.payload.errorMessage || 'Command failed'));
+                    }
+                }
+                break;
+
+            case 'query_response':
+                console.log('Query result:', message.payload);
+
+                // 保留中のリクエストを解決
+                if (message.requestId && this.pendingRequests.has(message.requestId)) {
+                    const pending = this.pendingRequests.get(message.requestId);
+                    if (message.payload.success) {
+                        pending.resolve(message);
+                    } else {
+                        pending.reject(new Error(message.payload.errorMessage || 'Query failed'));
+                    }
+                }
                 break;
 
             case 'event':
@@ -461,6 +585,12 @@ class Scratch3MinecraftBlocks {
 
             case 'error':
                 console.error('Server error:', message.payload);
+
+                // 保留中のリクエストを解決（エラーとして）
+                if (message.requestId && this.pendingRequests.has(message.requestId)) {
+                    const pending = this.pendingRequests.get(message.requestId);
+                    pending.reject(new Error(message.payload.errorMessage || 'Server error'));
+                }
                 break;
         }
     }
