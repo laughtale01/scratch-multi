@@ -10,7 +10,7 @@
 
 ## プロジェクト概要
 
-このプロジェクトは、[takecx](https://github.com/takecx)さんの優れた[Scratch-Minecraft連携プロジェクト](https://qiita.com/panda531/items/a6dfd87bd68ba2601793)をベースに、独自の改良を加えた教育向けシステムです。
+このプロジェクトは、[takecx](https://github.com/takecx)さんの優れた[Scratch-Minecraft連携プロジェクト](https://qiita.com/panda531/items/a6dfd87bd68ba2601793)を参考にしながら、完全に独自で構築した教育向けシステムです。
 
 ### 主な特徴
 
@@ -369,17 +369,19 @@ Scratch拡張機能とMinecraft MODはWebSocket (JSON形式) で通信します�
 
 このプロジェクトは[MIT License](LICENSE)の下で公開されています。
 
-### オリジナルプロジェクトのクレジット
+### 参考プロジェクトのクレジット
 
-このプロジェクトは以下のプロジェクトをベースにしています：
+このプロジェクトは、以下のプロジェクトを参考にしながら、完全に独自で実装されています：
 
-- [takecx/RemoteControllerMod](https://github.com/takecx/RemoteControllerMod)
-- [takecx/scratch-vm](https://github.com/takecx/scratch-vm)
-- [takecx/scratch-gui](https://github.com/takecx/scratch-gui)
+- [takecx/RemoteControllerMod](https://github.com/takecx/RemoteControllerMod) - WebSocket通信のアイデア
+- [takecx/scratch-vm](https://github.com/takecx/scratch-vm) - Scratch拡張機能の実装パターン
+- [takecx/scratch-gui](https://github.com/takecx/scratch-gui) - GUI統合の参考
 
-オリジナル作者: [takecx](https://github.com/takecx)
+参考プロジェクト作者: [takecx](https://github.com/takecx)
 
 参考記事: [ScratchからJava版Minecraftを操作する拡張機能 by panda531](https://qiita.com/panda531/items/a6dfd87bd68ba2601793)
+
+**注:** 本プロジェクトは上記プロジェクトのフォークではなく、完全に独自に実装されています。
 
 ---
 
@@ -473,7 +475,7 @@ A: はい、`scratch-vm-official/src/extensions/scratch3_minecraft/index.js` の
 
 このプロジェクトは多くの方々の協力により実現しました：
 
-- **takecx**さん - オリジナルプロジェクトの作成者
+- **takecx**さん - 参考にさせていただいたプロジェクトの作成者
 - **Scratch Team** - 素晴らしいビジュアルプログラミング環境の提供
 - **Minecraft Forge Team** - MOD開発環境の提供
 - すべてのオープンソースコミュニティの皆様
