@@ -9,25 +9,39 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class CommandExecutor {
 
     private final MinecraftServer server;
+    private JsonObject lastResult;
 
     public CommandExecutor(MinecraftServer server) {
         this.server = server;
+        this.lastResult = new JsonObject();
     }
 
     public boolean execute(String action, JsonObject params) {
         try {
+            lastResult = new JsonObject();
+
             switch (action) {
                 case "chat":
                     return executeChat(params);
 
                 case "setBlock":
                     return executeSetBlock(params);
+
+                case "getBlock":
+                    return executeGetBlock(params);
+
+                case "fillBlocks":
+                    return executeFillBlocks(params);
+
+                case "getPosition":
+                    return executeGetPosition(params);
 
                 case "summonEntity":
                     return executeSummonEntity(params);
@@ -41,6 +55,9 @@ public class CommandExecutor {
                 case "setTime":
                     return executeSetTime(params);
 
+                case "setGameMode":
+                    return executeSetGameMode(params);
+
                 default:
                     MinecraftEduMod.LOGGER.warn("Unknown command: " + action);
                     return false;
@@ -49,6 +66,10 @@ public class CommandExecutor {
             MinecraftEduMod.LOGGER.error("Error executing command: " + action, e);
             return false;
         }
+    }
+
+    public JsonObject getLastResult() {
+        return lastResult;
     }
 
     private boolean executeChat(JsonObject params) {
@@ -111,6 +132,147 @@ public class CommandExecutor {
         });
 
         MinecraftEduMod.LOGGER.info("Block placed: " + blockType + " at " + x + "," + y + "," + z);
+
+        // 結果データを設定
+        lastResult.addProperty("blockPlaced", true);
+        JsonObject position = new JsonObject();
+        position.addProperty("x", x);
+        position.addProperty("y", y);
+        position.addProperty("z", z);
+        lastResult.add("position", position);
+
+        return true;
+    }
+
+    private boolean executeGetBlock(JsonObject params) {
+        int x = params.get("x").getAsInt();
+        int y = params.get("y").getAsInt();
+        int z = params.get("z").getAsInt();
+
+        BlockPos pos = new BlockPos(x, y, z);
+        ServerLevel world = server.overworld();
+
+        // ブロック情報取得
+        BlockState blockState = world.getBlockState(pos);
+        Block block = blockState.getBlock();
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+
+        if (blockId == null) {
+            MinecraftEduMod.LOGGER.warn("Failed to get block ID at " + x + "," + y + "," + z);
+            return false;
+        }
+
+        MinecraftEduMod.LOGGER.info("Block retrieved: " + blockId + " at " + x + "," + y + "," + z);
+
+        // 結果データを設定
+        lastResult.addProperty("blockType", blockId.toString());
+        JsonObject position = new JsonObject();
+        position.addProperty("x", x);
+        position.addProperty("y", y);
+        position.addProperty("z", z);
+        lastResult.add("position", position);
+        lastResult.add("blockState", new JsonObject());
+
+        return true;
+    }
+
+    private boolean executeFillBlocks(JsonObject params) {
+        // fromとtoの座標を取得
+        JsonObject from = params.getAsJsonObject("from");
+        JsonObject to = params.getAsJsonObject("to");
+        String blockType = params.get("blockType").getAsString();
+
+        int fromX = from.get("x").getAsInt();
+        int fromY = from.get("y").getAsInt();
+        int fromZ = from.get("z").getAsInt();
+
+        int toX = to.get("x").getAsInt();
+        int toY = to.get("y").getAsInt();
+        int toZ = to.get("z").getAsInt();
+
+        // 座標範囲を正規化（小さい方から大きい方へ）
+        int minX = Math.min(fromX, toX);
+        int maxX = Math.max(fromX, toX);
+        int minY = Math.min(fromY, toY);
+        int maxY = Math.max(fromY, toY);
+        int minZ = Math.min(fromZ, toZ);
+        int maxZ = Math.max(fromZ, toZ);
+
+        // 範囲チェック（最大10000ブロックまで）
+        int volume = (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+        if (volume > 10000) {
+            MinecraftEduMod.LOGGER.warn("Fill volume too large: " + volume + " blocks");
+            return false;
+        }
+
+        // ブロックタイプ取得
+        ResourceLocation blockId = new ResourceLocation(blockType);
+        Block block = BuiltInRegistries.BLOCK.get(blockId);
+
+        if (block == null) {
+            MinecraftEduMod.LOGGER.warn("Unknown block type: " + blockType);
+            return false;
+        }
+
+        BlockState blockState = block.defaultBlockState();
+
+        // ブロック配置
+        server.execute(() -> {
+            ServerLevel world = server.overworld();
+            int placedCount = 0;
+
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        BlockPos pos = new BlockPos(x, y, z);
+                        world.setBlock(pos, blockState, 3);
+                        placedCount++;
+                    }
+                }
+            }
+
+            MinecraftEduMod.LOGGER.info("Filled " + placedCount + " blocks with " + blockType);
+        });
+
+        // 結果データを設定
+        lastResult.addProperty("blocksFilled", volume);
+        lastResult.addProperty("blockType", blockType);
+        JsonObject fromPos = new JsonObject();
+        fromPos.addProperty("x", minX);
+        fromPos.addProperty("y", minY);
+        fromPos.addProperty("z", minZ);
+        JsonObject toPos = new JsonObject();
+        toPos.addProperty("x", maxX);
+        toPos.addProperty("y", maxY);
+        toPos.addProperty("z", maxZ);
+        lastResult.add("from", fromPos);
+        lastResult.add("to", toPos);
+
+        return true;
+    }
+
+    private boolean executeGetPosition(JsonObject params) {
+        ServerPlayer player = getFirstPlayer();
+        if (player == null) {
+            MinecraftEduMod.LOGGER.warn("No player found for getPosition");
+            return false;
+        }
+
+        double x = player.getX();
+        double y = player.getY();
+        double z = player.getZ();
+        float yaw = player.getYRot();
+        float pitch = player.getXRot();
+
+        MinecraftEduMod.LOGGER.info("Player position: " + x + "," + y + "," + z);
+
+        // 結果データを設定
+        lastResult.addProperty("x", x);
+        lastResult.addProperty("y", y);
+        lastResult.addProperty("z", z);
+        lastResult.addProperty("yaw", yaw);
+        lastResult.addProperty("pitch", pitch);
+
         return true;
     }
 
@@ -193,6 +355,47 @@ public class CommandExecutor {
         });
 
         MinecraftEduMod.LOGGER.info("Time set to: " + time);
+        return true;
+    }
+
+    private boolean executeSetGameMode(JsonObject params) {
+        String mode = params.get("mode").getAsString();
+
+        ServerPlayer player = getFirstPlayer();
+        if (player == null) {
+            MinecraftEduMod.LOGGER.warn("No player found for setGameMode");
+            return false;
+        }
+
+        GameType gameType;
+        switch (mode.toLowerCase()) {
+            case "survival":
+                gameType = GameType.SURVIVAL;
+                break;
+            case "creative":
+                gameType = GameType.CREATIVE;
+                break;
+            case "adventure":
+                gameType = GameType.ADVENTURE;
+                break;
+            case "spectator":
+                gameType = GameType.SPECTATOR;
+                break;
+            default:
+                MinecraftEduMod.LOGGER.warn("Unknown game mode: " + mode);
+                return false;
+        }
+
+        server.execute(() -> {
+            player.setGameMode(gameType);
+        });
+
+        MinecraftEduMod.LOGGER.info("Game mode set to: " + mode);
+
+        // 結果データを設定
+        lastResult.addProperty("gameMode", mode);
+        lastResult.addProperty("playerName", player.getName().getString());
+
         return true;
     }
 

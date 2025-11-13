@@ -4,15 +4,11 @@ import com.github.minecraftedu.MinecraftEduMod;
 import com.github.minecraftedu.commands.CommandExecutor;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import net.minecraft.server.MinecraftServer;
 
 import java.util.UUID;
 
-public class MinecraftWebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
+public class MinecraftWebSocketHandler {
 
     private final MinecraftServer minecraftServer;
     private final Gson gson;
@@ -25,58 +21,40 @@ public class MinecraftWebSocketHandler extends SimpleChannelInboundHandler<WebSo
         this.commandExecutor = new CommandExecutor(minecraftServer);
     }
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        MinecraftEduMod.LOGGER.info("New client connected: " + ctx.channel().remoteAddress());
-    }
+    public String handleMessage(String request) {
+        MinecraftEduMod.LOGGER.debug("Received: " + request);
 
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-        MinecraftEduMod.LOGGER.info("Client disconnected: " + ctx.channel().remoteAddress());
-    }
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) {
-        if (frame instanceof TextWebSocketFrame) {
-            String request = ((TextWebSocketFrame) frame).text();
-            MinecraftEduMod.LOGGER.debug("Received: " + request);
-
-            try {
-                JsonObject message = gson.fromJson(request, JsonObject.class);
-                handleMessage(ctx, message);
-            } catch (Exception e) {
-                MinecraftEduMod.LOGGER.error("Error processing message", e);
-                sendError(ctx, "INTERNAL_ERROR", "Failed to process message: " + e.getMessage());
-            }
+        try {
+            JsonObject message = gson.fromJson(request, JsonObject.class);
+            return processMessage(message);
+        } catch (Exception e) {
+            MinecraftEduMod.LOGGER.error("Error processing message", e);
+            return createError("INTERNAL_ERROR", "Failed to process message: " + e.getMessage());
         }
     }
 
-    private void handleMessage(ChannelHandlerContext ctx, JsonObject message) {
+    private String processMessage(JsonObject message) {
         String type = message.get("type").getAsString();
 
         switch (type) {
             case "connect":
-                handleConnect(ctx, message);
-                break;
+                return handleConnect(message);
 
             case "command":
-                handleCommand(ctx, message);
-                break;
+                return handleCommand(message);
 
             case "query":
-                handleQuery(ctx, message);
-                break;
+                return handleQuery(message);
 
             case "heartbeat":
-                handleHeartbeat(ctx);
-                break;
+                return handleHeartbeat();
 
             default:
-                sendError(ctx, "UNKNOWN_TYPE", "Unknown message type: " + type);
+                return createError("UNKNOWN_TYPE", "Unknown message type: " + type);
         }
     }
 
-    private void handleConnect(ChannelHandlerContext ctx, JsonObject message) {
+    private String handleConnect(JsonObject message) {
         // セッションID生成
         sessionId = UUID.randomUUID().toString();
 
@@ -93,6 +71,11 @@ public class MinecraftWebSocketHandler extends SimpleChannelInboundHandler<WebSo
         response.addProperty("sessionId", sessionId);
         response.addProperty("type", "connect_response");
 
+        // 元のリクエストのmessageIdを含める
+        if (message.has("messageId")) {
+            response.addProperty("requestId", message.get("messageId").getAsString());
+        }
+
         JsonObject responsePayload = new JsonObject();
         responsePayload.addProperty("success", true);
         responsePayload.addProperty("sessionId", sessionId);
@@ -108,10 +91,10 @@ public class MinecraftWebSocketHandler extends SimpleChannelInboundHandler<WebSo
         responsePayload.add("serverInfo", serverInfo);
         response.add("payload", responsePayload);
 
-        sendMessage(ctx, response);
+        return gson.toJson(response);
     }
 
-    private void handleCommand(ChannelHandlerContext ctx, JsonObject message) {
+    private String handleCommand(JsonObject message) {
         JsonObject payload = message.getAsJsonObject("payload");
         String action = payload.get("action").getAsString();
         JsonObject params = payload.getAsJsonObject("params");
@@ -130,13 +113,22 @@ public class MinecraftWebSocketHandler extends SimpleChannelInboundHandler<WebSo
             response.addProperty("sessionId", sessionId);
             response.addProperty("type", "command_response");
 
+            // 元のリクエストのmessageIdを含める
+            if (message.has("messageId")) {
+                response.addProperty("requestId", message.get("messageId").getAsString());
+            }
+
             JsonObject responsePayload = new JsonObject();
             responsePayload.addProperty("success", success);
             responsePayload.addProperty("action", action);
 
             if (success) {
-                JsonObject result = new JsonObject();
-                result.addProperty("message", "Command executed successfully");
+                // コマンド実行結果を取得
+                JsonObject result = commandExecutor.getLastResult();
+                if (result.size() == 0) {
+                    // 結果データがない場合はデフォルトメッセージ
+                    result.addProperty("message", "Command executed successfully");
+                }
                 responsePayload.add("result", result);
             } else {
                 responsePayload.addProperty("errorCode", "COMMAND_FAILED");
@@ -144,20 +136,65 @@ public class MinecraftWebSocketHandler extends SimpleChannelInboundHandler<WebSo
             }
 
             response.add("payload", responsePayload);
-            sendMessage(ctx, response);
+            return gson.toJson(response);
 
         } catch (Exception e) {
             MinecraftEduMod.LOGGER.error("Command execution error", e);
-            sendError(ctx, "COMMAND_FAILED", e.getMessage());
+            return createError("COMMAND_FAILED", e.getMessage());
         }
     }
 
-    private void handleQuery(ChannelHandlerContext ctx, JsonObject message) {
-        // TODO: クエリ処理実装
-        sendError(ctx, "NOT_IMPLEMENTED", "Query not implemented yet");
+    private String handleQuery(JsonObject message) {
+        JsonObject payload = message.getAsJsonObject("payload");
+        String action = payload.get("action").getAsString();
+        JsonObject params = payload.has("params") ? payload.getAsJsonObject("params") : new JsonObject();
+
+        MinecraftEduMod.LOGGER.info("Executing query: " + action);
+
+        try {
+            // クエリ実行（コマンドExecutorを使用）
+            boolean success = commandExecutor.execute(action, params);
+
+            // レスポンス
+            JsonObject response = new JsonObject();
+            response.addProperty("version", "1.0");
+            response.addProperty("messageId", UUID.randomUUID().toString());
+            response.addProperty("timestamp", System.currentTimeMillis());
+            response.addProperty("sessionId", sessionId);
+            response.addProperty("type", "query_response");
+
+            // 元のリクエストのmessageIdを含める
+            if (message.has("messageId")) {
+                response.addProperty("requestId", message.get("messageId").getAsString());
+            }
+
+            JsonObject responsePayload = new JsonObject();
+            responsePayload.addProperty("success", success);
+            responsePayload.addProperty("action", action);
+
+            if (success) {
+                // クエリ実行結果を取得
+                JsonObject result = commandExecutor.getLastResult();
+                if (result.size() == 0) {
+                    // 結果データがない場合はデフォルトメッセージ
+                    result.addProperty("message", "Query executed successfully");
+                }
+                responsePayload.add("result", result);
+            } else {
+                responsePayload.addProperty("errorCode", "QUERY_FAILED");
+                responsePayload.addProperty("errorMessage", "Failed to execute query");
+            }
+
+            response.add("payload", responsePayload);
+            return gson.toJson(response);
+
+        } catch (Exception e) {
+            MinecraftEduMod.LOGGER.error("Query execution error", e);
+            return createError("QUERY_FAILED", e.getMessage());
+        }
     }
 
-    private void handleHeartbeat(ChannelHandlerContext ctx) {
+    private String handleHeartbeat() {
         JsonObject response = new JsonObject();
         response.addProperty("version", "1.0");
         response.addProperty("messageId", UUID.randomUUID().toString());
@@ -169,15 +206,10 @@ public class MinecraftWebSocketHandler extends SimpleChannelInboundHandler<WebSo
         payload.addProperty("serverTime", System.currentTimeMillis());
         response.add("payload", payload);
 
-        sendMessage(ctx, response);
+        return gson.toJson(response);
     }
 
-    private void sendMessage(ChannelHandlerContext ctx, JsonObject message) {
-        String json = gson.toJson(message);
-        ctx.writeAndFlush(new TextWebSocketFrame(json));
-    }
-
-    private void sendError(ChannelHandlerContext ctx, String errorCode, String errorMessage) {
+    private String createError(String errorCode, String errorMessage) {
         JsonObject response = new JsonObject();
         response.addProperty("version", "1.0");
         response.addProperty("messageId", UUID.randomUUID().toString());
@@ -190,12 +222,6 @@ public class MinecraftWebSocketHandler extends SimpleChannelInboundHandler<WebSo
         payload.addProperty("errorMessage", errorMessage);
         response.add("payload", payload);
 
-        sendMessage(ctx, response);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        MinecraftEduMod.LOGGER.error("Exception in WebSocket handler", cause);
-        ctx.close();
+        return gson.toJson(response);
     }
 }
