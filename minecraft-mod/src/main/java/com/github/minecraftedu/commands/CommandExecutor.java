@@ -69,6 +69,9 @@ public class CommandExecutor {
                 case "clearAllEntities":
                     return executeClearAllEntities(params);
 
+                case "setGameRule":
+                    return executeSetGameRule(params);
+
                 default:
                     MinecraftEduMod.LOGGER.warn("Unknown command: " + action);
                     return false;
@@ -406,6 +409,70 @@ public class CommandExecutor {
     }
 
     /**
+     * ゲームルール設定
+     *
+     * 重要: Scratchのメニューの意図とMinecraftのゲームルールの意味が逆なので、
+     * doDaylightCycleとdoWeatherCycleは値を反転させる必要があります。
+     *
+     * Scratchの意図:
+     *   - 「時間固定ON」= 時間を止めたい
+     *   - 「天気固定ON」= 天気を固定したい
+     *
+     * Minecraftの仕様:
+     *   - doDaylightCycle = false で時間が止まる
+     *   - doWeatherCycle = false で天気が固定される
+     *
+     * 変換:
+     *   - Scratchの「ON (true)」→ Minecraftの「false」
+     *   - Scratchの「OFF (false)」→ Minecraftの「true」
+     */
+    private boolean executeSetGameRule(JsonObject params) {
+        String rule = params.get("rule").getAsString();
+        String value = params.get("value").getAsString();
+        boolean boolValue = value.equalsIgnoreCase("true");
+
+        server.execute(() -> {
+            ServerLevel world = server.overworld();
+            net.minecraft.world.level.GameRules gameRules = world.getGameRules();
+
+            switch (rule) {
+                case "doDaylightCycle":
+                    // Scratchの「時間固定ON」= Minecraftの「doDaylightCycle false」
+                    // 値を反転: ON (true) → false, OFF (false) → true
+                    boolean invertedDaylightValue = !boolValue;
+                    gameRules.getRule(net.minecraft.world.level.GameRules.RULE_DAYLIGHT)
+                        .set(invertedDaylightValue, server);
+                    MinecraftEduMod.LOGGER.info("GameRule set: doDaylightCycle = " + invertedDaylightValue + " (Scratch value: " + value + ")");
+                    break;
+                case "doWeatherCycle":
+                    // Scratchの「天気固定ON」= Minecraftの「doWeatherCycle false」
+                    // 値を反転: ON (true) → false, OFF (false) → true
+                    boolean invertedWeatherValue = !boolValue;
+                    gameRules.getRule(net.minecraft.world.level.GameRules.RULE_WEATHER_CYCLE)
+                        .set(invertedWeatherValue, server);
+                    MinecraftEduMod.LOGGER.info("GameRule set: doWeatherCycle = " + invertedWeatherValue + " (Scratch value: " + value + ")");
+                    break;
+                case "doMobSpawning":
+                    // モブスポーン: 反転不要（Scratchの意図とMinecraftの仕様が一致）
+                    gameRules.getRule(net.minecraft.world.level.GameRules.RULE_DOMOBSPAWNING)
+                        .set(boolValue, server);
+                    MinecraftEduMod.LOGGER.info("GameRule set: doMobSpawning = " + boolValue);
+                    break;
+                default:
+                    MinecraftEduMod.LOGGER.warn("Unknown game rule: " + rule);
+                    return;
+            }
+        });
+
+        // 結果データを設定
+        lastResult.addProperty("gameRule", rule);
+        lastResult.addProperty("value", value);
+        lastResult.addProperty("success", true);
+
+        return true;
+    }
+
+    /**
      * ブロックタイプ文字列からBlockStateを解析する
      * 形式: "oak_stairs[half=top,facing=north]" または "stone"
      */
@@ -490,6 +557,10 @@ public class CommandExecutor {
      * Y=-60～100: 空気
      */
     private boolean executeClearArea(JsonObject params) {
+        // 中心座標を取得（デフォルト: 0, 0）
+        int centerX = params.has("centerX") ? params.get("centerX").getAsInt() : 0;
+        int centerZ = params.has("centerZ") ? params.get("centerZ").getAsInt() : 0;
+
         server.execute(() -> {
             ServerLevel world = server.overworld();
             BlockState bedrock = net.minecraft.world.level.block.Blocks.BEDROCK.defaultBlockState();
@@ -497,10 +568,16 @@ public class CommandExecutor {
             BlockState grass = net.minecraft.world.level.block.Blocks.GRASS_BLOCK.defaultBlockState();
             BlockState air = net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
 
+            // 中心座標から±50の範囲
+            int minX = centerX - 50;
+            int maxX = centerX + 50;
+            int minZ = centerZ - 50;
+            int maxZ = centerZ + 50;
+
             int blocksCleared = 0;
-            for (int x = -50; x <= 50; x++) {
+            for (int x = minX; x <= maxX; x++) {
                 for (int y = -64; y <= 100; y++) {
-                    for (int z = -50; z <= 50; z++) {
+                    for (int z = minZ; z <= maxZ; z++) {
                         BlockPos pos = new BlockPos(x, y, z);
                         BlockState blockToPlace;
 
@@ -520,10 +597,12 @@ public class CommandExecutor {
                 }
             }
 
-            MinecraftEduMod.LOGGER.info("周囲クリア完了: " + blocksCleared + "ブロック（スーパーフラット初期状態）");
+            MinecraftEduMod.LOGGER.info("周囲クリア完了: 中心(" + centerX + ", " + centerZ + ") から " + blocksCleared + "ブロック（スーパーフラット初期状態）");
         });
 
         lastResult.addProperty("blocksCleared", 1683165);  // 101 * 165 * 101
+        lastResult.addProperty("centerX", centerX);
+        lastResult.addProperty("centerZ", centerZ);
         return true;
     }
 
@@ -532,12 +611,17 @@ public class CommandExecutor {
      * X:-50～50、Y:-64～100、Z:-50～50の範囲のエンティティを削除（プレイヤーを除く）
      */
     private boolean executeClearAllEntities(JsonObject params) {
+        // 中心座標を取得（デフォルト: 0, 0）
+        int centerX = params.has("centerX") ? params.get("centerX").getAsInt() : 0;
+        int centerZ = params.has("centerZ") ? params.get("centerZ").getAsInt() : 0;
+
         server.execute(() -> {
             ServerLevel world = server.overworld();
 
+            // 中心座標から±50の範囲
             net.minecraft.world.phys.AABB bounds = new net.minecraft.world.phys.AABB(
-                -50, -64, -50,
-                50, 100, 50
+                centerX - 50, -64, centerZ - 50,
+                centerX + 50, 100, centerZ + 50
             );
 
             int entitiesRemoved = 0;
@@ -555,10 +639,12 @@ public class CommandExecutor {
                 }
             }
 
-            MinecraftEduMod.LOGGER.info("エンティティクリア完了: " + entitiesRemoved + "体");
+            MinecraftEduMod.LOGGER.info("エンティティクリア完了: 中心(" + centerX + ", " + centerZ + ") から " + entitiesRemoved + "体");
         });
 
         lastResult.addProperty("entitiesRemoved", true);
+        lastResult.addProperty("centerX", centerX);
+        lastResult.addProperty("centerZ", centerZ);
         return true;
     }
 
