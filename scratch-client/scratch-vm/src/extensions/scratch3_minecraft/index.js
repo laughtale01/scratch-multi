@@ -239,7 +239,7 @@ class Scratch3MinecraftBlocks {
                 {
                     opcode: 'clearArea',
                     blockType: 'command',
-                    text: 'X:[X] Z:[Z] を中心に周囲クリア',
+                    text: '周囲をクリア X:[X] Z:[Z]',
                     arguments: {
                         X: {
                             type: 'number',
@@ -254,7 +254,7 @@ class Scratch3MinecraftBlocks {
                 {
                     opcode: 'clearAllEntities',
                     blockType: 'command',
-                    text: 'X:[X] Z:[Z] を中心に全エンティティをクリア',
+                    text: '全エンティティをクリア X:[X] Z:[Z]',
                     arguments: {
                         X: {
                             type: 'number',
