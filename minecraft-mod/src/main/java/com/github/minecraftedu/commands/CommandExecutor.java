@@ -483,11 +483,11 @@ public class CommandExecutor {
 
     /**
      * 周囲クリア
-     * X:-25～25、Y:-4～100、Z:-25～25の範囲をスーパーフラットの初期状態に戻す
+     * X:-25～25、Y:-64～100、Z:-25～25の範囲をスーパーフラットの初期状態に戻す
      * Y=-64: 岩盤
-     * Y=-63～-61: 土（2層）
-     * Y=-60: 草ブロック
-     * Y=-59～100: 空気
+     * Y=-63～-62: 土（2層）
+     * Y=-61: 草ブロック
+     * Y=-60～100: 空気
      */
     private boolean executeClearArea(JsonObject params) {
         server.execute(() -> {
@@ -506,9 +506,9 @@ public class CommandExecutor {
 
                         if (y == -64) {
                             blockToPlace = bedrock;
-                        } else if (y >= -63 && y <= -61) {
+                        } else if (y >= -63 && y <= -62) {
                             blockToPlace = dirt;
-                        } else if (y == -60) {
+                        } else if (y == -61) {
                             blockToPlace = grass;
                         } else {
                             blockToPlace = air;
