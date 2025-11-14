@@ -53,6 +53,37 @@ class Scratch3MinecraftBlocks {
                         }
                     }
                 },
+                {
+                    opcode: 'teleport',
+                    blockType: 'command',
+                    text: 'テレポート x:[X] y:[Y] z:[Z]',
+                    arguments: {
+                        X: {
+                            type: 'number',
+                            defaultValue: 0
+                        },
+                        Y: {
+                            type: 'number',
+                            defaultValue: 64
+                        },
+                        Z: {
+                            type: 'number',
+                            defaultValue: 0
+                        }
+                    }
+                },
+                {
+                    opcode: 'getPosition',
+                    blockType: 'reporter',
+                    text: 'プレイヤーの位置 [COORD]',
+                    arguments: {
+                        COORD: {
+                            type: 'string',
+                            menu: 'coordinates',
+                            defaultValue: 'x'
+                        }
+                    }
+                },
                 '---',
                 {
                     opcode: 'setBlock',
@@ -175,38 +206,6 @@ class Scratch3MinecraftBlocks {
                         Z: {
                             type: 'number',
                             defaultValue: 0
-                        }
-                    }
-                },
-                '---',
-                {
-                    opcode: 'teleport',
-                    blockType: 'command',
-                    text: 'テレポート x:[X] y:[Y] z:[Z]',
-                    arguments: {
-                        X: {
-                            type: 'number',
-                            defaultValue: 0
-                        },
-                        Y: {
-                            type: 'number',
-                            defaultValue: 64
-                        },
-                        Z: {
-                            type: 'number',
-                            defaultValue: 0
-                        }
-                    }
-                },
-                {
-                    opcode: 'getPosition',
-                    blockType: 'reporter',
-                    text: 'プレイヤーの位置 [COORD]',
-                    arguments: {
-                        COORD: {
-                            type: 'string',
-                            menu: 'coordinates',
-                            defaultValue: 'x'
                         }
                     }
                 },
