@@ -239,12 +239,32 @@ class Scratch3MinecraftBlocks {
                 {
                     opcode: 'clearArea',
                     blockType: 'command',
-                    text: '周囲クリア'
+                    text: 'X:[X] Z:[Z] を中心に周囲クリア',
+                    arguments: {
+                        X: {
+                            type: 'number',
+                            defaultValue: 0
+                        },
+                        Z: {
+                            type: 'number',
+                            defaultValue: 0
+                        }
+                    }
                 },
                 {
                     opcode: 'clearAllEntities',
                     blockType: 'command',
-                    text: '全エンティティをクリア'
+                    text: 'X:[X] Z:[Z] を中心に全エンティティをクリア',
+                    arguments: {
+                        X: {
+                            type: 'number',
+                            defaultValue: 0
+                        },
+                        Z: {
+                            type: 'number',
+                            defaultValue: 0
+                        }
+                    }
                 },
                 '---',
                 {
@@ -746,21 +766,31 @@ class Scratch3MinecraftBlocks {
 
     /**
      * 周囲クリア
-     * X:-50～50、Y:-64～100、Z:-50～50の範囲をスーパーフラットの初期状態に戻す
+     * 指定された中心座標(X, Z)から±50ブロックの範囲をスーパーフラットの初期状態に戻す
      * Y=-64: 岩盤、Y=-63～-62: 土（2層）、Y=-61: 草ブロック、Y=-60～100: 空気
      */
-    clearArea() {
-        console.log('周囲クリア開始: 1,683,165ブロック（スーパーフラット初期状態）');
-        return this.sendCommand('clearArea', {});
+    clearArea(args) {
+        const centerX = Number(args.X) || 0;
+        const centerZ = Number(args.Z) || 0;
+        console.log(`周囲クリア開始: 中心(${centerX}, ${centerZ}) から±50ブロック範囲`);
+        return this.sendCommand('clearArea', {
+            centerX: centerX,
+            centerZ: centerZ
+        });
     }
 
     /**
      * 全エンティティをクリア
-     * X:-50～50、Y:-64～100、Z:-50～50の範囲のエンティティを削除（プレイヤーを除く）
+     * 指定された中心座標(X, Z)から±50ブロック、Y:-64～100の範囲のエンティティを削除（プレイヤーを除く）
      */
-    clearAllEntities() {
-        console.log('全エンティティクリア開始');
-        return this.sendCommand('clearAllEntities', {});
+    clearAllEntities(args) {
+        const centerX = Number(args.X) || 0;
+        const centerZ = Number(args.Z) || 0;
+        console.log(`全エンティティクリア開始: 中心(${centerX}, ${centerZ}) から±50ブロック範囲`);
+        return this.sendCommand('clearAllEntities', {
+            centerX: centerX,
+            centerZ: centerZ
+        });
     }
 
     /**
