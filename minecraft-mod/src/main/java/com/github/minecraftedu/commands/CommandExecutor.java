@@ -63,6 +63,12 @@ public class CommandExecutor {
                 case "setGameMode":
                     return executeSetGameMode(params);
 
+                case "clearArea":
+                    return executeClearArea(params);
+
+                case "clearAllEntities":
+                    return executeClearAllEntities(params);
+
                 default:
                     MinecraftEduMod.LOGGER.warn("Unknown command: " + action);
                     return false;
@@ -473,6 +479,62 @@ public class CommandExecutor {
             MinecraftEduMod.LOGGER.warn("Invalid value '" + value + "' for property '" + property.getName() + "'");
             return state;
         }
+    }
+
+    /**
+     * 周囲クリア
+     * X:-25～25、Y:-4～100、Z:-25～25の範囲を空気ブロックで埋める
+     */
+    private boolean executeClearArea(JsonObject params) {
+        server.execute(() -> {
+            ServerLevel world = server.overworld();
+            BlockState air = net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
+
+            int blocksCleared = 0;
+            for (int x = -25; x <= 25; x++) {
+                for (int y = -4; y <= 100; y++) {
+                    for (int z = -25; z <= 25; z++) {
+                        BlockPos pos = new BlockPos(x, y, z);
+                        world.setBlock(pos, air, 3);
+                        blocksCleared++;
+                    }
+                }
+            }
+
+            MinecraftEduMod.LOGGER.info("周囲クリア完了: " + blocksCleared + "ブロック");
+        });
+
+        lastResult.addProperty("blocksCleared", 273255);
+        return true;
+    }
+
+    /**
+     * 全エンティティをクリア
+     * X:-25～25、Y:-4～100、Z:-25～25の範囲のエンティティを削除（プレイヤーを除く）
+     */
+    private boolean executeClearAllEntities(JsonObject params) {
+        server.execute(() -> {
+            ServerLevel world = server.overworld();
+
+            net.minecraft.world.phys.AABB bounds = new net.minecraft.world.phys.AABB(
+                -25, -4, -25,
+                25, 100, 25
+            );
+
+            int entitiesRemoved = 0;
+            for (net.minecraft.world.entity.Entity entity : world.getEntitiesOfClass(
+                    net.minecraft.world.entity.Entity.class, bounds)) {
+                // プレイヤーは除外
+                if (!(entity instanceof ServerPlayer)) {
+                    entity.discard();
+                    entitiesRemoved++;
+                }
+            }
+
+            MinecraftEduMod.LOGGER.info("エンティティクリア完了: " + entitiesRemoved + "体");
+        });
+
+        return true;
     }
 
     private ServerPlayer getFirstPlayer() {

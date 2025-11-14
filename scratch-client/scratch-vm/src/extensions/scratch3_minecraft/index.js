@@ -237,6 +237,17 @@ class Scratch3MinecraftBlocks {
                 },
                 '---',
                 {
+                    opcode: 'clearArea',
+                    blockType: 'command',
+                    text: '周囲クリア'
+                },
+                {
+                    opcode: 'clearAllEntities',
+                    blockType: 'command',
+                    text: '全エンティティをクリア'
+                },
+                '---',
+                {
                     opcode: 'isConnected',
                     blockType: 'Boolean',
                     text: '接続中？'
@@ -731,6 +742,24 @@ class Scratch3MinecraftBlocks {
                 }
                 break;
         }
+    }
+
+    /**
+     * 周囲クリア
+     * X:-25～25、Y:-4～100、Z:-25～25の範囲を空気ブロックで埋める
+     */
+    clearArea() {
+        console.log('周囲クリア開始: 273,255ブロック');
+        return this.sendCommand('clearArea', {});
+    }
+
+    /**
+     * 全エンティティをクリア
+     * X:-25～25、Y:-4～100、Z:-25～25の範囲のエンティティを削除
+     */
+    clearAllEntities() {
+        console.log('全エンティティクリア開始');
+        return this.sendCommand('clearAllEntities', {});
     }
 
     /**
