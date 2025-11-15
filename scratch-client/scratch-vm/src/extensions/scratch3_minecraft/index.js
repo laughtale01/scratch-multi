@@ -329,7 +329,7 @@ class Scratch3MinecraftBlocks {
 
                         // 石材系
                         'smooth_stone', 'stone_bricks', 'cracked_stone_bricks', 'mossy_stone_bricks', 'chiseled_stone_bricks',
-                        'granite', 'polished_granite', 'diorite', 'polished_diorite', 'andesite', 'polished_andesite',
+                        'mossy_cobblestone', 'granite', 'polished_granite', 'diorite', 'polished_diorite', 'andesite', 'polished_andesite',
                         'calcite', 'tuff', 'dripstone_block', 'moss_block',
 
                         // ディープスレート系
@@ -376,18 +376,20 @@ class Scratch3MinecraftBlocks {
                         'light_gray_terracotta', 'cyan_terracotta', 'purple_terracotta', 'blue_terracotta',
                         'brown_terracotta', 'green_terracotta', 'red_terracotta', 'black_terracotta',
 
-                        // 彩釉テラコッタ（主要色）
+                        // 彩釉テラコッタ（全16色）
                         'white_glazed_terracotta', 'orange_glazed_terracotta', 'magenta_glazed_terracotta',
                         'light_blue_glazed_terracotta', 'yellow_glazed_terracotta', 'lime_glazed_terracotta',
-                        'pink_glazed_terracotta', 'cyan_glazed_terracotta', 'purple_glazed_terracotta',
-                        'blue_glazed_terracotta', 'red_glazed_terracotta', 'black_glazed_terracotta',
+                        'pink_glazed_terracotta', 'gray_glazed_terracotta', 'light_gray_glazed_terracotta',
+                        'cyan_glazed_terracotta', 'purple_glazed_terracotta', 'blue_glazed_terracotta',
+                        'brown_glazed_terracotta', 'green_glazed_terracotta', 'red_glazed_terracotta', 'black_glazed_terracotta',
 
                         // ガラス系
                         'glass', 'tinted_glass',
                         'white_stained_glass', 'orange_stained_glass', 'magenta_stained_glass', 'light_blue_stained_glass',
                         'yellow_stained_glass', 'lime_stained_glass', 'pink_stained_glass', 'gray_stained_glass',
-                        'cyan_stained_glass', 'purple_stained_glass', 'blue_stained_glass',
-                        'red_stained_glass', 'green_stained_glass', 'black_stained_glass',
+                        'light_gray_stained_glass', 'cyan_stained_glass', 'purple_stained_glass', 'blue_stained_glass',
+                        'brown_stained_glass', 'green_stained_glass', 'red_stained_glass', 'black_stained_glass',
+                        'white_stained_glass_pane', 'black_stained_glass_pane',
 
                         // 鉱石ブロック
                         'gold_block', 'iron_block', 'copper_block', 'diamond_block', 'emerald_block',
@@ -403,6 +405,16 @@ class Scratch3MinecraftBlocks {
                         'oak_leaves', 'spruce_leaves', 'birch_leaves', 'jungle_leaves',
                         'acacia_leaves', 'dark_oak_leaves', 'mangrove_leaves', 'cherry_leaves',
                         'azalea_leaves', 'flowering_azalea_leaves',
+
+                        // フェンス（全種類）
+                        'oak_fence', 'spruce_fence', 'birch_fence', 'jungle_fence',
+                        'acacia_fence', 'dark_oak_fence', 'mangrove_fence', 'cherry_fence',
+                        'bamboo_fence', 'crimson_fence', 'warped_fence', 'nether_brick_fence',
+
+                        // 塀（全種類）
+                        'cobblestone_wall', 'mossy_cobblestone_wall', 'stone_brick_wall', 'brick_wall',
+                        'granite_wall', 'diorite_wall', 'andesite_wall', 'sandstone_wall', 'red_sandstone_wall',
+                        'nether_brick_wall', 'red_nether_brick_wall', 'prismarine_wall', 'end_stone_brick_wall', 'mud_brick_wall',
 
                         // その他重要ブロック
                         'obsidian', 'crying_obsidian', 'netherrack', 'soul_sand', 'soul_soil',
