@@ -726,9 +726,9 @@ class Scratch3MinecraftBlocks {
         // 垂直スラブの場合は特別な処理
         if (isVerticalSlab) {
             // 垂直スラブは向きプロパティのみを持つ（placementは無視）
-            if (facing && facing !== 'none') {
-                properties.push(`facing=${facing}`);
-            }
+            // facingは必須プロパティなので、'none'の場合はデフォルトで'north'を使用
+            const verticalSlabFacing = (facing && facing !== 'none') ? facing : 'north';
+            properties.push(`facing=${verticalSlabFacing}`);
         } else {
             // 通常のブロック（バニラスラブ、階段など）の処理
             const isSlab = blockId.includes('_slab');

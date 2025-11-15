@@ -105,9 +105,10 @@ describe('Scratch3MinecraftBlocks', () => {
         });
 
         // 垂直スラブ（MOD追加ブロック）のテスト
-        test('should build vertical slab with minecraftedu namespace', () => {
+        test('should build vertical slab with minecraftedu namespace and default facing', () => {
+            // facing='none'の場合、デフォルトで'north'が使用される
             const result = instance._buildBlockTypeWithProperties('vertical_oak_slab', 'bottom', 'none');
-            expect(result).toBe('minecraftedu:vertical_oak_slab');
+            expect(result).toBe('minecraftedu:vertical_oak_slab[facing=north]');
         });
 
         test('should build vertical slab with facing=north', () => {
