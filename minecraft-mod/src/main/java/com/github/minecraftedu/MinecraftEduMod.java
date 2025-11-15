@@ -1,12 +1,16 @@
 package com.github.minecraftedu;
 
+import com.github.minecraftedu.init.ModBlocks;
+import com.github.minecraftedu.init.ModItems;
 import com.github.minecraftedu.network.SimpleWebSocketServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,8 +23,18 @@ public class MinecraftEduMod {
     private SimpleWebSocketServer webSocketServer;
 
     public MinecraftEduMod() {
+        // Get the MOD event bus for registration
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        // Register deferred registries to the MOD event bus
+        ModBlocks.BLOCKS.register(modEventBus);
+        ModItems.ITEMS.register(modEventBus);
+
+        // Register this class to the Forge event bus for server events
         MinecraftForge.EVENT_BUS.register(this);
+
         LOGGER.info("MinecraftEdu Mod initializing...");
+        LOGGER.info("Registered custom blocks: vertical_oak_slab");
     }
 
     @SubscribeEvent

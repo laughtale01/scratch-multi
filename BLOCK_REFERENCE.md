@@ -494,6 +494,54 @@ Place block x:[0] y:[64] z:[0] [oak_door] [bottom] [east]
 
 ---
 
+### 🆕 Vertical Slabs (MOD Feature)
+
+**⚠️ MOD Required**: Vertical slabs are added by the MinecraftEdu Forge MOD and are not available in vanilla Minecraft.
+
+Unlike vanilla slabs which can only be placed vertically (bottom/top/double), **vertical slabs can be placed horizontally** facing any of the 4 cardinal directions.
+
+**Available Vertical Slabs**:
+- `vertical_oak_slab` - オークのスラブ（垂直）
+
+**Key Differences from Vanilla Slabs**:
+
+| Feature | Vanilla Slabs | Vertical Slabs |
+|---------|---------------|----------------|
+| Placement | Vertical (top/bottom/double) | Horizontal (north/south/east/west) |
+| Property | `type`: bottom/top/double | `facing`: north/south/east/west |
+| Namespace | `minecraft:` | `minecraftedu:` |
+| Use Cases | Floors, ceilings, steps | Walls, dividers, pillars |
+
+**How to Use Vertical Slabs**:
+
+1. **Select the block**: Choose "オークのスラブ（垂直）" from the block dropdown
+2. **Set facing direction**: Use the facing parameter (north/south/east/west)
+3. **Placement parameter is ignored**: The placement parameter (bottom/top/double) has no effect on vertical slabs
+
+**Example**:
+```
+// Place vertical slab facing north
+Place block x:[0] y:[64] z:[0] [vertical_oak_slab] [bottom] [north]
+→ Result: minecraftedu:vertical_oak_slab[facing=north]
+
+// Place vertical slab facing east
+Place block x:[0] y:[64] z:[0] [vertical_oak_slab] [bottom] [east]
+→ Result: minecraftedu:vertical_oak_slab[facing=east]
+
+// Note: placement parameter is automatically ignored for vertical slabs
+Place block x:[0] y:[64] z:[0] [vertical_oak_slab] [top] [west]
+→ Result: minecraftedu:vertical_oak_slab[facing=west] (NOT type=top!)
+```
+
+**Collision Box**:
+- Height: Full block (16 pixels)
+- Width: Half block (8 pixels)
+- Direction: Perpendicular to facing direction
+
+**詳細情報**: 詳しい使い方は [垂直ハーフブロック使用ガイド](./docs/VERTICAL_SLAB_USAGE.md) を参照してください。
+
+---
+
 ## 📐 Coordinate System
 
 ### Understanding Minecraft Coordinates

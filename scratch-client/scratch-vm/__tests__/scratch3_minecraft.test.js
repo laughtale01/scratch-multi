@@ -103,6 +103,46 @@ describe('Scratch3MinecraftBlocks', () => {
             expect(instance._buildBlockTypeWithProperties('oak_stairs', 'bottom', 'west'))
                 .toBe('minecraft:oak_stairs[facing=west]');
         });
+
+        // 垂直スラブ（MOD追加ブロック）のテスト
+        test('should build vertical slab with minecraftedu namespace', () => {
+            const result = instance._buildBlockTypeWithProperties('vertical_oak_slab', 'bottom', 'none');
+            expect(result).toBe('minecraftedu:vertical_oak_slab');
+        });
+
+        test('should build vertical slab with facing=north', () => {
+            const result = instance._buildBlockTypeWithProperties('vertical_oak_slab', 'bottom', 'north');
+            expect(result).toBe('minecraftedu:vertical_oak_slab[facing=north]');
+        });
+
+        test('should build vertical slab with facing=south', () => {
+            const result = instance._buildBlockTypeWithProperties('vertical_oak_slab', 'bottom', 'south');
+            expect(result).toBe('minecraftedu:vertical_oak_slab[facing=south]');
+        });
+
+        test('should build vertical slab with facing=east', () => {
+            const result = instance._buildBlockTypeWithProperties('vertical_oak_slab', 'bottom', 'east');
+            expect(result).toBe('minecraftedu:vertical_oak_slab[facing=east]');
+        });
+
+        test('should build vertical slab with facing=west', () => {
+            const result = instance._buildBlockTypeWithProperties('vertical_oak_slab', 'bottom', 'west');
+            expect(result).toBe('minecraftedu:vertical_oak_slab[facing=west]');
+        });
+
+        test('should ignore placement parameter for vertical slabs (top)', () => {
+            // 垂直スラブはplacementパラメータを無視してfacingのみを使用
+            const result = instance._buildBlockTypeWithProperties('vertical_oak_slab', 'top', 'north');
+            expect(result).toBe('minecraftedu:vertical_oak_slab[facing=north]');
+            // type=topが含まれないことを確認
+            expect(result).not.toContain('type=top');
+        });
+
+        test('should ignore placement parameter for vertical slabs (double)', () => {
+            const result = instance._buildBlockTypeWithProperties('vertical_oak_slab', 'double', 'east');
+            expect(result).toBe('minecraftedu:vertical_oak_slab[facing=east]');
+            expect(result).not.toContain('type=double');
+        });
     });
 
     describe('_toMinecraftY', () => {
