@@ -344,6 +344,9 @@ class Scratch3MinecraftBlocks {
                         'blackstone_slab', 'polished_blackstone_slab', 'polished_blackstone_brick_slab',
                         'end_stone_brick_slab', 'purpur_slab',
 
+                        // 垂直ハーフブロック（MOD追加ブロック）
+                        'vertical_oak_slab',
+
                         // 階段（全種類）
                         'oak_stairs', 'spruce_stairs', 'birch_stairs', 'jungle_stairs',
                         'acacia_stairs', 'dark_oak_stairs', 'mangrove_stairs', 'cherry_stairs',
@@ -706,33 +709,46 @@ class Scratch3MinecraftBlocks {
 
     /**
      * ブロックタイプとプロパティを構築
-     * @param {string} blockId - ブロックID（例: 'stone_slab'）
+     * @param {string} blockId - ブロックID（例: 'stone_slab', 'vertical_oak_slab'）
      * @param {string} placement - 配置タイプ（'bottom', 'top', 'double'）
      * @param {string} facing - 向き（'north', 'south', 'east', 'west', 'none'）
-     * @returns {string} 完全なブロックタイプ文字列（例: 'minecraft:stone_slab[type=top]'）
+     * @returns {string} 完全なブロックタイプ文字列（例: 'minecraft:stone_slab[type=top]', 'minecraftedu:vertical_oak_slab[facing=north]'）
      */
     _buildBlockTypeWithProperties(blockId, placement, facing) {
-        let blockType = `minecraft:${blockId}`;
+        // 垂直スラブかどうかを判定（MOD追加ブロック）
+        const isVerticalSlab = blockId.startsWith('vertical_') && blockId.includes('_slab');
+
+        // 垂直スラブの場合は minecraftedu 名前空間を使用、それ以外は minecraft を使用
+        const namespace = isVerticalSlab ? 'minecraftedu' : 'minecraft';
+        let blockType = `${namespace}:${blockId}`;
         const properties = [];
 
-        // スラブかどうかを判定
-        const isSlab = blockId.includes('_slab');
-
-        // 配置パラメータを適用
-        if (placement && placement !== 'bottom') {
-            if (isSlab) {
-                // スラブの場合: type プロパティを使用
-                properties.push(`type=${placement}`);
-            } else {
-                // 階段などの場合: half プロパティを使用
-                properties.push(`half=${placement}`);
+        // 垂直スラブの場合は特別な処理
+        if (isVerticalSlab) {
+            // 垂直スラブは向きプロパティのみを持つ（placementは無視）
+            if (facing && facing !== 'none') {
+                properties.push(`facing=${facing}`);
             }
-        }
+        } else {
+            // 通常のブロック（バニラスラブ、階段など）の処理
+            const isSlab = blockId.includes('_slab');
 
-        // 向きパラメータを適用（階段、ドア、フェンスゲートなど - スラブ以外）
-        // スラブには方向性がないため、isSlab=trueの場合はfacingを追加しない
-        if (facing && facing !== 'none' && !isSlab) {
-            properties.push(`facing=${facing}`);
+            // 配置パラメータを適用
+            if (placement && placement !== 'bottom') {
+                if (isSlab) {
+                    // バニラスラブの場合: type プロパティを使用
+                    properties.push(`type=${placement}`);
+                } else {
+                    // 階段などの場合: half プロパティを使用
+                    properties.push(`half=${placement}`);
+                }
+            }
+
+            // 向きパラメータを適用（階段、ドア、フェンスゲートなど - バニラスラブ以外）
+            // バニラスラブには方向性がないため、isSlab=trueの場合はfacingを追加しない
+            if (facing && facing !== 'none' && !isSlab) {
+                properties.push(`facing=${facing}`);
+            }
         }
 
         // プロパティを結合
