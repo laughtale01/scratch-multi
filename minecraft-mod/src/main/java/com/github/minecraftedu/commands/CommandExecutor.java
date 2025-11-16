@@ -48,6 +48,12 @@ public class CommandExecutor {
                 case "getPosition":
                     return executeGetPosition(params);
 
+                case "getPlayerFacing":
+                    return executeGetPlayerFacing(params);
+
+                case "getBlockType":
+                    return executeGetBlockType(params);
+
                 case "summonEntity":
                     return executeSummonEntity(params);
 
@@ -281,6 +287,80 @@ public class CommandExecutor {
         lastResult.addProperty("z", z);
         lastResult.addProperty("yaw", yaw);
         lastResult.addProperty("pitch", pitch);
+
+        return true;
+    }
+
+    private boolean executeGetPlayerFacing(JsonObject params) {
+        ServerPlayer player = getFirstPlayer();
+        if (player == null) {
+            MinecraftEduMod.LOGGER.warn("No player found for getPlayerFacing");
+            return false;
+        }
+
+        // プレーヤーの向き（yaw）から方向を判定
+        // Yaw: 0=South, 90=West, 180=North, 270=East
+        float yaw = player.getYRot();
+
+        // Yawを0～360の範囲に正規化
+        yaw = yaw % 360;
+        if (yaw < 0) {
+            yaw += 360;
+        }
+
+        String facing;
+        if (yaw >= 315 || yaw < 45) {
+            facing = "south";
+        } else if (yaw >= 45 && yaw < 135) {
+            facing = "west";
+        } else if (yaw >= 135 && yaw < 225) {
+            facing = "north";
+        } else {
+            facing = "east";
+        }
+
+        MinecraftEduMod.LOGGER.info("Player facing: " + facing + " (yaw: " + yaw + ")");
+
+        // 結果データを設定
+        lastResult.addProperty("facing", facing);
+        lastResult.addProperty("yaw", yaw);
+
+        return true;
+    }
+
+    private boolean executeGetBlockType(JsonObject params) {
+        int x = params.get("x").getAsInt();
+        int y = params.get("y").getAsInt();
+        int z = params.get("z").getAsInt();
+
+        BlockPos pos = new BlockPos(x, y, z);
+        ServerLevel world = server.overworld();
+
+        // ブロック情報取得
+        BlockState blockState = world.getBlockState(pos);
+        Block block = blockState.getBlock();
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+
+        if (blockId == null) {
+            MinecraftEduMod.LOGGER.warn("Failed to get block ID at " + x + "," + y + "," + z);
+            return false;
+        }
+
+        // "minecraft:" プレフィックスを削除してシンプルな形式にする
+        String blockType = blockId.toString();
+        if (blockType.startsWith("minecraft:")) {
+            blockType = blockType.substring(10);
+        }
+
+        MinecraftEduMod.LOGGER.info("Block type retrieved: " + blockType + " at " + x + "," + y + "," + z);
+
+        // 結果データを設定
+        lastResult.addProperty("blockType", blockType);
+        JsonObject position = new JsonObject();
+        position.addProperty("x", x);
+        position.addProperty("y", y);
+        position.addProperty("z", z);
+        lastResult.add("position", position);
 
         return true;
     }
