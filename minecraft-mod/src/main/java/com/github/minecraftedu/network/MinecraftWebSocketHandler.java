@@ -15,6 +15,7 @@ import java.util.UUID;
  */
 public class MinecraftWebSocketHandler {
 
+    @SuppressWarnings("FieldCanBeLocal")
     private final MinecraftServer minecraftServer;
     private final ConnectionManager connectionManager;
     private final SimpleWebSocketServer webSocketServer;
