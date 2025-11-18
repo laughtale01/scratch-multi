@@ -53,6 +53,23 @@ lib/
 *.temp
 *.bak
 *.cache
+*.orig
+
+# Python development files
+*.py
+*.pyc
+__pycache__/
+
+# Temporary directories
+temp_*/
+
+# Development documentation
+AGENT_*.md
+HOW_TO_*.md
+SOKOBAN_*.md
+sokoban_*.md
+*-backup.md
+*_script.txt
 
 # Secrets
 *.env
