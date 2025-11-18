@@ -1,37 +1,86 @@
 package com.github.minecraftedu.network;
 
 import com.github.minecraftedu.MinecraftEduMod;
+import com.github.minecraftedu.multiplayer.ConnectionManager;
+import com.github.minecraftedu.multiplayer.MultiplayerConfig;
 import net.minecraft.server.MinecraftServer;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class SimpleWebSocketServer {
     private static final String WEBSOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     private final int port;
     private final MinecraftServer minecraftServer;
+    private final MultiplayerConfig config;
+    private final ConnectionManager connectionManager;
     private ServerSocket serverSocket;
     private ExecutorService executor;
+    private ScheduledExecutorService healthCheckExecutor;
     private volatile boolean running = false;
+
+    // アクティブなWebSocket接続を管理
+    private final Map<String, WebSocketConnection> activeWebSockets;
 
     public SimpleWebSocketServer(int port, MinecraftServer minecraftServer) {
         this.port = port;
         this.minecraftServer = minecraftServer;
         this.executor = Executors.newCachedThreadPool();
+        this.healthCheckExecutor = Executors.newSingleThreadScheduledExecutor();
+        this.activeWebSockets = new ConcurrentHashMap<>();
+
+        // 設定ファイル読み込み
+        Path configPath = Paths.get("config", "minecraftedu", "multiplayer.json");
+        this.config = MultiplayerConfig.load(configPath);
+        this.config.printConnectionInfo();
+
+        // ConnectionManager初期化
+        this.connectionManager = new ConnectionManager(config);
+    }
+
+    /**
+     * WebSocket接続を格納するクラス
+     */
+    public static class WebSocketConnection {
+        public final Socket socket;
+        public final OutputStream outputStream;
+        public String sessionId;
+
+        public WebSocketConnection(Socket socket, OutputStream outputStream) {
+            this.socket = socket;
+            this.outputStream = outputStream;
+        }
+    }
+
+    public ConnectionManager getConnectionManager() {
+        return connectionManager;
     }
 
     public void start() throws IOException {
         serverSocket = new ServerSocket(port);
         running = true;
         MinecraftEduMod.LOGGER.info("WebSocket server started on port " + port);
+
+        // ヘルスチェックタスク開始（60秒ごと）
+        healthCheckExecutor.scheduleAtFixedRate(() -> {
+            try {
+                connectionManager.performHealthCheck();
+            } catch (Exception e) {
+                MinecraftEduMod.LOGGER.error("Error during health check", e);
+            }
+        }, 60, 60, TimeUnit.SECONDS);
 
         // Accept connections in a separate thread
         executor.submit(() -> {
@@ -84,6 +133,11 @@ public class SimpleWebSocketServer {
 
             MinecraftEduMod.LOGGER.info("WebSocket handshake completed");
 
+            // WebSocket接続を保存
+            String connectionId = client.getRemoteSocketAddress().toString();
+            WebSocketConnection wsConnection = new WebSocketConnection(client, out);
+            activeWebSockets.put(connectionId, wsConnection);
+
             // Handle WebSocket frames
             InputStream in = client.getInputStream();
             while (running && !client.isClosed()) {
@@ -130,7 +184,7 @@ public class SimpleWebSocketServer {
                 if (opcode == 0x1) { // Text frame
                     String message = new String(payload, StandardCharsets.UTF_8);
                     MinecraftEduMod.LOGGER.info("Received WebSocket message: " + message);
-                    handleWebSocketMessage(message, out);
+                    handleWebSocketMessage(message, wsConnection);
                 } else if (opcode == 0x8) { // Close frame
                     MinecraftEduMod.LOGGER.info("Client requested close");
                     break;
@@ -143,7 +197,13 @@ public class SimpleWebSocketServer {
         } catch (Exception e) {
             MinecraftEduMod.LOGGER.error("Error handling client", e);
         } finally {
+            // 切断処理
             try {
+                String connectionId = client.getRemoteSocketAddress().toString();
+                WebSocketConnection wsConn = activeWebSockets.remove(connectionId);
+                if (wsConn != null && wsConn.sessionId != null) {
+                    connectionManager.handleDisconnection(wsConn.sessionId);
+                }
                 client.close();
                 MinecraftEduMod.LOGGER.info("Client disconnected");
             } catch (IOException e) {
@@ -152,17 +212,73 @@ public class SimpleWebSocketServer {
         }
     }
 
-    private void handleWebSocketMessage(String message, OutputStream out) {
+    private void handleWebSocketMessage(String message, WebSocketConnection wsConnection) {
         try {
-            // Parse JSON and delegate to handler
-            MinecraftWebSocketHandler handler = new MinecraftWebSocketHandler(minecraftServer);
+            // メッセージハンドラーを作成（接続情報を渡す）
+            MinecraftWebSocketHandler handler = new MinecraftWebSocketHandler(
+                minecraftServer,
+                connectionManager,
+                this,
+                wsConnection
+            );
+
             String response = handler.handleMessage(message);
 
             if (response != null) {
-                sendTextFrame(out, response);
+                sendTextFrame(wsConnection.outputStream, response);
             }
         } catch (Exception e) {
             MinecraftEduMod.LOGGER.error("Error handling message", e);
+        }
+    }
+
+    /**
+     * セッションIDからWebSocket接続を取得
+     */
+    public WebSocketConnection getWebSocketConnection(String sessionId) {
+        for (WebSocketConnection conn : activeWebSockets.values()) {
+            if (sessionId.equals(conn.sessionId)) {
+                return conn;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * すべてのクライアントにメッセージを送信
+     */
+    public void broadcastMessage(String message) {
+        for (WebSocketConnection conn : activeWebSockets.values()) {
+            try {
+                sendTextFrame(conn.outputStream, message);
+            } catch (IOException e) {
+                MinecraftEduMod.LOGGER.error("Error broadcasting message", e);
+            }
+        }
+    }
+
+    /**
+     * 特定のセッション以外にメッセージを送信
+     */
+    public void broadcastMessageExcept(String excludeSessionId, String message) {
+        for (WebSocketConnection conn : activeWebSockets.values()) {
+            if (!excludeSessionId.equals(conn.sessionId)) {
+                try {
+                    sendTextFrame(conn.outputStream, message);
+                } catch (IOException e) {
+                    MinecraftEduMod.LOGGER.error("Error broadcasting message", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * WebSocket接続を登録
+     */
+    public void registerWebSocketConnection(String connectionId, String sessionId) {
+        WebSocketConnection conn = activeWebSockets.get(connectionId);
+        if (conn != null) {
+            conn.sessionId = sessionId;
         }
     }
 
@@ -218,11 +334,24 @@ public class SimpleWebSocketServer {
     public void stop() {
         running = false;
         try {
+            // すべての接続をクローズ
+            for (WebSocketConnection conn : activeWebSockets.values()) {
+                try {
+                    conn.socket.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
+            }
+            activeWebSockets.clear();
+
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
             }
             if (executor != null) {
                 executor.shutdownNow();
+            }
+            if (healthCheckExecutor != null) {
+                healthCheckExecutor.shutdownNow();
             }
             MinecraftEduMod.LOGGER.info("WebSocket server stopped");
         } catch (IOException e) {
