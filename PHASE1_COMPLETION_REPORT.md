@@ -97,7 +97,7 @@ docs/
 
 #### 生成されたJAR
 ```
-build/libs/minecraftedu-mod-0.1.0-1.20.1.jar (101KB)
+build/libs/minecraftedu-mod-0.2.0-1.20.1.jar (101KB)
 
 含まれるクラス:
 ✅ com/github/minecraftedu/multiplayer/*.class (全7クラス)
@@ -241,7 +241,7 @@ cd minecraft-mod
 
 ### JARファイル確認
 ```bash
-jar -tf build/libs/minecraftedu-mod-0.1.0-1.20.1.jar | grep multiplayer
+jar -tf build/libs/minecraftedu-mod-0.2.0-1.20.1.jar | grep multiplayer
 ```
 **結果**: ✅ すべてのマルチプレイヤークラスが含まれている
 
@@ -253,7 +253,7 @@ jar -tf build/libs/minecraftedu-mod-0.1.0-1.20.1.jar | grep multiplayer
 
 ```bash
 # JARファイルを配置
-cp minecraft-mod/build/libs/minecraftedu-mod-0.1.0-1.20.1.jar ~/.minecraft/mods/
+cp minecraft-mod/build/libs/minecraftedu-mod-0.2.0-1.20.1.jar ~/.minecraft/mods/
 ```
 
 ### 2. 設定ファイルの編集

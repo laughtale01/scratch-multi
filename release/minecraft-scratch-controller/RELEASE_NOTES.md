@@ -144,7 +144,7 @@
 ```
 minecraft-scratch-controller/
 ├── minecraft-mod/
-│   └── minecraftedu-mod-0.1.0-1.20.1.jar  (23KB)
+│   └── minecraftedu-mod-0.2.0-1.20.1.jar  (23KB)
 ├── scratch-gui/
 │   └── [ビルド成果物]                       (293MB)
 ├── docs/

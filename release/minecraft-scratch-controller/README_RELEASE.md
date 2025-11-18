@@ -16,7 +16,7 @@
 minecraft-scratch-controller/
 │
 ├── minecraft-mod/                           Minecraft MOD
-│   └── minecraftedu-mod-0.1.0-1.20.1.jar   MODファイル (23KB)
+│   └── minecraftedu-mod-0.2.0-1.20.1.jar   MODファイル (23KB)
 │
 ├── scratch-gui.tar.gz                       Scratch GUI (圧縮済み, ~60MB)
 │
@@ -34,7 +34,7 @@ minecraft-scratch-controller/
 
 ```bash
 # Minecraft modsフォルダにコピー
-cp minecraft-mod/minecraftedu-mod-0.1.0-1.20.1.jar ~/.minecraft/mods/
+cp minecraft-mod/minecraftedu-mod-0.2.0-1.20.1.jar ~/.minecraft/mods/
 ```
 
 ### 2. Scratch GUIを展開

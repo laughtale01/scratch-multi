@@ -21,7 +21,7 @@
 release/
 ├── minecraft-scratch-controller/      メインリリースパッケージ
 │   ├── minecraft-mod/                 Minecraft MOD
-│   │   └── minecraftedu-mod-0.1.0-1.20.1.jar
+│   │   └── minecraftedu-mod-0.2.0-1.20.1.jar
 │   ├── scratch-gui.tar.gz            Scratch GUI（圧縮済み）
 │   ├── INSTALL.md                     インストール手順
 │   ├── RELEASE_NOTES.md              リリースノート

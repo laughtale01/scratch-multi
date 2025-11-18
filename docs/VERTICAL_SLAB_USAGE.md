@@ -228,7 +228,7 @@ npm run build
 **原因**: MODがサーバーに読み込まれていない
 
 **解決策**:
-1. `minecraft-mod/build/libs/minecraftedu-mod-0.1.0-1.20.1.jar` が存在するか確認
+1. `minecraft-mod/build/libs/minecraftedu-mod-0.2.0-1.20.1.jar` が存在するか確認
 2. Minecraftサーバーの `mods/` フォルダにJARファイルを配置
 3. サーバーを再起動
 

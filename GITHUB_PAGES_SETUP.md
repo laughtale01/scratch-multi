@@ -15,7 +15,7 @@
 ### 📍 **公開URL** (設定完了後にアクセス可能)
 
 ```
-https://laughtale01.github.io/Scratch/
+https://laughtale01.github.io/scratch-multi/
 ```
 
 ---
@@ -43,7 +43,7 @@ https://laughtale01.github.io/Scratch/
 - 設定後、数分でデプロイが完了します
 - ページ上部に緑色のバナーが表示され、URLが表示されます：
   ```
-  Your site is published at https://laughtale01.github.io/Scratch/
+  Your site is published at https://laughtale01.github.io/scratch-multi/
   ```
 
 ---
@@ -55,7 +55,7 @@ https://laughtale01.github.io/Scratch/
 ### 1. Scratch GUIが表示されるか
 
 ```
-https://laughtale01.github.io/Scratch/
+https://laughtale01.github.io/scratch-multi/
 ```
 
 ブラウザで開くと、Scratch 3.0のエディタが表示されるはずです。
@@ -78,14 +78,14 @@ https://laughtale01.github.io/Scratch/
 ### MODのインストール
 
 1. Minecraft Forge 1.20.1をインストール
-2. `minecraft-mod/build/libs/minecraftedu-mod-0.1.0-1.20.1.jar` を `.minecraft/mods/` にコピー
+2. `minecraft-mod/build/libs/minecraftedu-mod-0.2.0-1.20.1.jar` を `.minecraft/mods/` にコピー
 3. Minecraftを起動
 
 ### Scratch GUIの使用
 
 **ブラウザで以下にアクセスするだけ：**
 ```
-https://laughtale01.github.io/Scratch/
+https://laughtale01.github.io/scratch-multi/
 ```
 
 ✅ **インストール不要！**

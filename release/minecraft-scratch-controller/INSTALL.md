@@ -35,7 +35,7 @@
    - **Linux**: `~/.minecraft/mods/`
 
 2. このリリースパッケージの `minecraft-mod` フォルダ内にある
-   **`minecraftedu-mod-0.1.0-1.20.1.jar`** を modsフォルダにコピー
+   **`minecraftedu-mod-0.2.0-1.20.1.jar`** を modsフォルダにコピー
 
 ### ステップ3: Minecraftの起動と確認
 
@@ -134,7 +134,7 @@ netstat -an | grep 14711
 ## アンインストール
 
 ### MODの削除
-modsフォルダから `minecraftedu-mod-0.1.0-1.20.1.jar` を削除
+modsフォルダから `minecraftedu-mod-0.2.0-1.20.1.jar` を削除
 
 ### Scratch GUIの削除
 インストールした scratch-gui フォルダを削除

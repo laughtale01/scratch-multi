@@ -173,14 +173,14 @@ sudo systemctl reload nginx
 
 #### オプション1: 直接配布
 
-リリースパッケージの `minecraft-mod/minecraftedu-mod-0.1.0-1.20.1.jar` を配布
+リリースパッケージの `minecraft-mod/minecraftedu-mod-0.2.0-1.20.1.jar` を配布
 
 #### オプション2: ダウンロードリンク
 
 Webサーバーに配置し、ダウンロードリンクを提供：
 
 ```html
-<a href="/downloads/minecraftedu-mod-0.1.0-1.20.1.jar">
+<a href="/downloads/minecraftedu-mod-0.2.0-1.20.1.jar">
   MODをダウンロード
 </a>
 ```

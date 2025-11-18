@@ -64,7 +64,7 @@ gradlew.bat build
 BUILD SUCCESSFUL in Xm Xs
 ```
 
-ビルドされたMOD: `minecraft-mod/build/libs/minecraftedu-mod-0.1.0-1.20.1.jar`
+ビルドされたMOD: `minecraft-mod/build/libs/minecraftedu-mod-0.2.0-1.20.1.jar`
 
 #### ステップ2: Forgeのインストール
 
