@@ -5,17 +5,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1-green.svg)](https://minecraft.net)
 [![Scratch](https://img.shields.io/badge/Scratch-3.0-orange.svg)](https://scratch.mit.edu)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen)](https://laughtale01.github.io/Scratch/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen)](https://laughtale01.github.io/scratch-multi/)
 
 ## 📚 Quick Links
 
-- **[🎮 Try it Now](https://laughtale01.github.io/Scratch/)** - Start programming Minecraft with Scratch!
-- **[📖 Block Reference](BLOCK_REFERENCE.md)** - Complete guide to all 15+ blocks and 400+ block types
-- **[📥 Download MOD](https://github.com/laughtale01/Scratch/blob/main/release/minecraft-scratch-controller/minecraftedu-mod-0.1.0-1.20.1.jar)** - Get the Minecraft mod
+- **[🎮 Try it Now](https://laughtale01.github.io/scratch-multi/)** - Start programming Minecraft with Scratch!
+- **[📖 Block Reference](BLOCK_REFERENCE.md)** - Complete guide to all 18+ blocks and 564+ block types
+- **[📥 Download MOD](https://github.com/laughtale01/scratch-multi/blob/main/release/minecraft-scratch-controller/minecraftedu-mod-0.2.0-1.20.1.jar)** - Get the Minecraft mod
 - **[📝 Installation Guide](release/minecraft-scratch-controller/INSTALL.md)** - Step-by-step setup instructions
 - **[🤝 Contributing](CONTRIBUTING.md)** - Help improve this project
 - **[📜 Changelog](CHANGELOG.md)** - Version history and updates
-- **[❓ Issues](https://github.com/laughtale01/Scratch/issues)** - Report bugs or request features
+- **[❓ Issues](https://github.com/laughtale01/scratch-multi/issues)** - Report bugs or request features
 
 ---
 
@@ -23,7 +23,7 @@
 
 ### **ステップ1: MODをダウンロード**
 
-[📥 minecraftedu-mod-0.1.0-1.20.1.jar をダウンロード](https://github.com/laughtale01/Scratch/blob/main/release/minecraft-scratch-controller/minecraftedu-mod-0.1.0-1.20.1.jar)
+[📥 minecraftedu-mod-0.2.0-1.20.1.jar をダウンロード](https://github.com/laughtale01/scratch-multi/blob/main/release/minecraft-scratch-controller/minecraftedu-mod-0.2.0-1.20.1.jar)
 
 「Download」ボタンをクリックしてMODファイルを入手
 
@@ -37,7 +37,7 @@
 
 ### **ステップ3: Scratch GUIにアクセス**
 
-[🌐 https://laughtale01.github.io/Scratch/](https://laughtale01.github.io/Scratch/)
+[🌐 https://laughtale01.github.io/scratch-multi/](https://laughtale01.github.io/scratch-multi/)
 
 ブラウザで開くだけ！インストール不要！
 
@@ -46,7 +46,10 @@
 1. Minecraftを起動してワールドを開く
 2. Scratchで「拡張機能を追加」→「Minecraft」を選択
 3. 「Minecraftに接続」ブロックを実行
-4. 接続成功！🎉
+   - **最初の接続（HOST）**: トークンなしで接続 → 全権限を持つホストになります
+   - **2人目以降（GUEST）**: トークンを入力して接続 → 基本操作のみ可能
+   - トークンは初回接続時に自動生成され、Minecraftチャットに表示されます
+4. 接続成功！🎉 最大10人で同時にプログラミングできます
 
 詳しいインストール手順は [INSTALL.md](release/minecraft-scratch-controller/INSTALL.md) を参照してください。
 
@@ -88,6 +91,13 @@
 - WebSocketによる高速通信
 - Scratchとの即座の連携
 - 安定した接続
+
+👥 **マルチプレイヤー対応 (Phase 1完了)**
+- 最大10人の同時接続が可能
+- HOST/GUEST役割による権限管理
+- トークン認証で安全な接続
+- リアルタイムイベント通知
+- 協調学習に最適
 
 ---
 
@@ -258,6 +268,14 @@ Minecraft 1.20.1の建築用ブロックをほぼ完全にカバーしていま�
 | 天気を〜にする | 天気を変更（晴れ・雨・雷雨） |
 | 時刻を〜にする | 時刻を変更（朝・昼・夕方・夜・真夜中） |
 
+### マルチプレイヤー情報
+
+| ブロック名 | 説明 |
+|-----------|------|
+| 接続中のユーザー数 | 現在接続しているクライアント数を取得（レポーター） |
+| 自分の名前 | 自分のクライアント名を取得（レポーター） |
+| 自分の役割 | 自分の役割（HOST/GUEST）を取得（レポーター） |
+
 ---
 
 ## 配布・インストール
@@ -266,13 +284,13 @@ Minecraft 1.20.1の建築用ブロックをほぼ完全にカバーしていま�
 
 #### MODのダウンロード
 
-[📥 minecraftedu-mod-0.1.0-1.20.1.jar](https://github.com/laughtale01/Scratch/blob/main/release/minecraft-scratch-controller/minecraftedu-mod-0.1.0-1.20.1.jar)
+[📥 minecraftedu-mod-0.2.0-1.20.1.jar](https://github.com/laughtale01/scratch-multi/blob/main/release/minecraft-scratch-controller/minecraftedu-mod-0.2.0-1.20.1.jar)
 
 GitHubから直接ダウンロードできます（ページ内の「Download」ボタンをクリック）
 
 #### Scratch GUI
 
-[🌐 https://laughtale01.github.io/Scratch/](https://laughtale01.github.io/Scratch/)
+[🌐 https://laughtale01.github.io/scratch-multi/](https://laughtale01.github.io/scratch-multi/)
 
 ブラウザでアクセスするだけ！インストール不要！
 
@@ -309,11 +327,11 @@ minecraft-laughtare-project/
 │   │       ├── WebSocketServer.java
 │   │       └── commands/
 │   └── build/libs/                         # ビルド成果物
-│       └── minecraftedu-mod-0.1.0-1.20.1.jar
+│       └── minecraftedu-mod-0.2.0-1.20.1.jar
 │
 ├── release/                                # リリースパッケージ
 │   ├── minecraft-scratch-controller/       # 配布用ファイル
-│   │   ├── minecraftedu-mod-0.1.0-1.20.1.jar
+│   │   ├── minecraftedu-mod-0.2.0-1.20.1.jar
 │   │   ├── INSTALL.md
 │   │   ├── README.md
 │   │   └── RELEASE_NOTES.md
@@ -385,7 +403,7 @@ cd minecraft-mod
 # Mac/Linuxの場合
 ./gradlew build
 
-# ビルド成果物: build/libs/minecraftedu-mod-0.1.0-1.20.1.jar
+# ビルド成果物: build/libs/minecraftedu-mod-0.2.0-1.20.1.jar
 ```
 
 ### 通信プロトコル
@@ -519,18 +537,22 @@ A: はい、開発者向け手順に従って `npm start` を実行すれば、�
 ### Version 1.0.0 (2025-11-14) 🎉
 
 - 🎉 **本番リリース！**
-- 🌐 GitHub Pagesで公開（https://laughtale01.github.io/Scratch/）
+- 🌐 GitHub Pagesで公開（https://laughtale01.github.io/scratch-multi/）
 - ⚡ ブロック設置上限を**2,000,000ブロック**に拡大
 - 🔧 Y座標自動変換機能を実装（Scratch Y=0 → Minecraft Y=-60）
 - 📦 配布パッケージとドキュメントを整備
 - ✅ 本番環境での動作確認完了
 
-### Version 0.2.0 (2025-11-13)
+### Version 0.2.0 (2025-11-17) 👥
 
-- ✨ ブロックの色を緑系に変更（Minecraftテーマに合わせて）
-- ✨ ブロック名を日本語化（18種類）
-- ✨ エンティティ名を日本語化（12種類）
-- ✨ 範囲設置ブロックを新規追加
+- 🎉 **マルチプレイヤー対応 Phase 1 完了！**
+- 👥 最大10人の同時接続に対応
+- 🔐 トークン認証システムを実装
+- 👑 HOST/GUEST役割による権限管理
+- 📢 リアルタイムイベント通知機能
+- ✨ マルチプレイヤー情報ブロック追加（3種類）
+- 📦 ブロックタイプを564種類に拡大
+- 🎨 垂直スラブMOD追加（34種類）
 - 🐛 WebSocket通信の安定性を改善
 
 ### Version 0.1.0 (2025-11-12)
@@ -544,20 +566,37 @@ A: はい、開発者向け手順に従って `npm start` を実行すれば、�
 
 ## 今後の開発予定
 
-### 近日中に追加予定
+### Phase 1: マルチプレイヤー基礎 ✅ 完了 (2025-11-17)
 
-- [ ] より多くのブロックタイプとエンティティの追加
-- [ ] ブロックの取得・検索機能
-- [ ] インベントリ操作
-- [ ] ゲームモード変更
-- [ ] パーティクル生成
+- [x] 最大10人の同時接続
+- [x] HOST/GUEST役割管理
+- [x] トークン認証
+- [x] 権限ベースのアクセス制御
+- [x] リアルタイム通知
 
-### 将来的に検討中
+### Phase 2: マルチプレイヤー拡張（次期バージョン）
+
+- [ ] OBSERVER役割（観察専用モード）
+- [ ] 詳細な権限カスタマイズ機能
+- [ ] 再接続機能
+- [ ] Scratchイベントブロック（ハットブロック）
+- [ ] 接続状態の可視化
+
+### Phase 3: 教育機能（将来）
 
 - [ ] 教育向けチュートリアルシステム
-- [ ] マルチプレイヤー対応の強化
-- [ ] 進捗管理システム
-- [ ] Scratch作品の共有機能
+- [ ] 課題・クエストシステム
+- [ ] 学習進捗トラッキング
+- [ ] バッジ・実績システム
+- [ ] 教師向け管理ツール
+
+### その他の機能追加予定
+
+- [ ] ブロックの取得・検索機能
+- [ ] インベントリ操作
+- [ ] ゲームモード変更コマンド追加
+- [ ] パーティクル生成
+- [ ] より多くのエンティティ追加
 
 ---
 
@@ -605,8 +644,8 @@ A: はい、開発者向け手順に従って `npm start` を実行すれば、�
 ---
 
 **作成日**: 2025-11-12
-**最終更新**: 2025-11-14
-**バージョン**: 1.0.1
+**最終更新**: 2025-11-18
+**バージョン**: 0.2.0 (マルチプレイヤー対応版)
 
 ---
 

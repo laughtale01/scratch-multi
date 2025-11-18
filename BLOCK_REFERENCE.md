@@ -737,7 +737,7 @@ When green flag clicked
 
 ## 📞 Getting Help
 
-- **Issues**: https://github.com/laughtale01/Scratch/issues
+- **Issues**: https://github.com/laughtale01/scratch-multi/issues
 - **Documentation**: See README.md and CONTRIBUTING.md
 - **Community**: GitHub Discussions
 

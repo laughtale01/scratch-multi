@@ -31,6 +31,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed security vulnerabilities in authentication
 - Corrected documentation inconsistencies
 
+## [0.2.0] - 2025-11-17
+
+### Added
+- **Multiplayer Support Phase 1 Complete** 🎉
+  - Support for up to 10 simultaneous connections
+  - Token-based authentication system
+  - HOST/GUEST role management
+  - Permission-based access control (15 permission types)
+  - Real-time event notifications
+  - Connection session management
+  - Heartbeat monitoring (60-second interval)
+- Multiplayer information blocks (3 new blocks)
+  - Get connected user count
+  - Get client name
+  - Get client role
+- Custom vertical slab MOD (34 types)
+- Block type support expanded to 564 types
+- Comprehensive multiplayer documentation
+
+### Changed
+- Updated all documentation for multiplayer version
+- Enhanced connection flow to support HOST/GUEST roles
+- Improved error messages for multiplayer scenarios
+- Repository renamed to scratch-multi
+
 ## [1.0.1] - 2025-11-15
 
 ### Added
@@ -90,7 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Area clearing functions
 - Entity clearing functions
 - GitHub Pages deployment
-- Live demo at https://laughtale01.github.io/Scratch/
+- Live demo at https://laughtale01.github.io/scratch-multi/
 
 ### Technical Features
 - Y-coordinate transformation (Scratch Y=0 → Minecraft Y=-60)
@@ -114,6 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Version History Summary
 
 - **[Unreleased]** - Quality improvements, testing infrastructure, CI/CD
+- **[0.2.0]** - 2025-11-17 - Multiplayer support Phase 1 complete
 - **[1.0.1]** - 2025-11-15 - Quality improvements and validation
 - **[1.0.0]** - 2025-11-14 - Initial public release with 564 blocks
 - **[0.1.0]** - 2025-11-12 - Project initialization
@@ -122,9 +148,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Links
 
-- [GitHub Repository](https://github.com/laughtale01/Scratch)
-- [Live Demo](https://laughtale01.github.io/Scratch/)
-- [Issue Tracker](https://github.com/laughtale01/Scratch/issues)
+- [GitHub Repository](https://github.com/laughtale01/scratch-multi)
+- [Live Demo](https://laughtale01.github.io/scratch-multi/)
+- [Issue Tracker](https://github.com/laughtale01/scratch-multi/issues)
 
 ---
 

@@ -702,7 +702,7 @@ A: はい、`scratch-vm/src/extensions/scratch3_minecraft/index.js` を編集す
 
 問題が解決しない場合は、以下の方法でサポートを受けられます：
 
-- **GitHub Issues**: https://github.com/laughtale01/Scratch/issues
+- **GitHub Issues**: https://github.com/laughtale01/scratch-multi/issues
 - **ドキュメント**: `docs/` ディレクトリ内の詳細ドキュメント
 
 ---

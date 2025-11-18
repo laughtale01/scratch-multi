@@ -3,17 +3,21 @@
 ## プロジェクト概要
 
 ### プロジェクト名
-**MinecraftEdu Scratch Controller** (仮称)
+**MinecraftEdu Scratch Controller** (マルチプレイヤー対応版)
 
 ### 目的
 takecxさんの「Scratch-Minecraft連携システム」をベースに、以下の独自機能を追加したオリジナルプロジェクトを構築：
-1. **マルチプレイヤー対応**: 複数のScratchクライアントから同時にMinecraftを操作
-2. **教育コンテンツ**: チュートリアル、課題システム、進捗管理機能
+1. **マルチプレイヤー対応** (Phase 1 ✅ 完了): 複数のScratchクライアントから同時にMinecraftを操作
+   - 最大10人の同時接続
+   - HOST/GUEST役割管理
+   - トークン認証システム
+   - 権限ベースのアクセス制御
+2. **教育コンテンツ** (Phase 3 計画中): チュートリアル、課題システム、進捗管理機能
 
 ### 対象バージョン
-- **Minecraft**: 1.20.x（最新版）
+- **Minecraft**: 1.20.1
 - **Scratch**: 3.0
-- **Minecraft Forge**: 1.20.x対応版
+- **Minecraft Forge**: 1.20.1-47.2.0
 
 ---
 
