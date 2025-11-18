@@ -12,6 +12,12 @@ class Scratch3MinecraftBlocks {
         this.pendingRequests = new Map();
         this.requestTimeout = 5000;
 
+        // マルチプレイヤー関連
+        this.clientName = '';
+        this.clientRole = '';
+        this.activeClients = 0;
+        this.heartbeatInterval = null;
+
         // 座標変換定数
         // スーパーフラットワールドの地表がY=-60のため、
         // Scratch Y座標から60を引いてMinecraft座標に変換
@@ -35,7 +41,7 @@ class Scratch3MinecraftBlocks {
                 {
                     opcode: 'connect',
                     blockType: 'command',
-                    text: 'Minecraftに接続 ホスト [HOST] ポート [PORT]',
+                    text: 'Minecraftに接続 ホスト [HOST] ポート [PORT] 名前 [NAME] トークン [TOKEN]',
                     arguments: {
                         HOST: {
                             type: 'string',
@@ -44,6 +50,14 @@ class Scratch3MinecraftBlocks {
                         PORT: {
                             type: 'number',
                             defaultValue: 14711
+                        },
+                        NAME: {
+                            type: 'string',
+                            defaultValue: 'ゲスト'
+                        },
+                        TOKEN: {
+                            type: 'string',
+                            defaultValue: 'GUEST01'
                         }
                     }
                 },
@@ -309,6 +323,21 @@ class Scratch3MinecraftBlocks {
                     opcode: 'isConnected',
                     blockType: 'Boolean',
                     text: '接続中？'
+                },
+                {
+                    opcode: 'getActiveClients',
+                    blockType: 'reporter',
+                    text: '接続中のユーザー数'
+                },
+                {
+                    opcode: 'getClientName',
+                    blockType: 'reporter',
+                    text: '自分の名前'
+                },
+                {
+                    opcode: 'getClientRole',
+                    blockType: 'reporter',
+                    text: '自分の役割'
                 }
             ],
             menus: {
@@ -662,6 +691,8 @@ class Scratch3MinecraftBlocks {
     connect(args) {
         const host = args.HOST || 'localhost';
         const port = args.PORT || 14711;
+        const clientName = args.NAME || 'ゲスト';
+        const token = args.TOKEN || '';
         const url = `ws://${host}:${port}/minecraft`;
 
         return new Promise((resolve, reject) => {
@@ -671,20 +702,24 @@ class Scratch3MinecraftBlocks {
                 this.socket.onopen = () => {
                     console.log('Connected to Minecraft server');
 
-                    // 接続メッセージ送信
+                    // マルチプレイヤー対応接続メッセージ送信
                     this.sendMessage({
                         type: 'connect',
                         payload: {
-                            clientId: `scratch_client_${Date.now()}`,
-                            authToken: this._generateClientToken(),
+                            clientName: clientName,
+                            token: token,
                             clientInfo: {
                                 userAgent: 'Scratch 3.0',
-                                version: '0.1.0'
+                                version: '0.2.0'  // マルチプレイヤー対応版
                             }
                         }
                     });
 
                     this.connected = true;
+
+                    // ハートビート開始（30秒ごと）
+                    this.startHeartbeat();
+
                     resolve();
                 };
 
@@ -709,6 +744,7 @@ class Scratch3MinecraftBlocks {
                 this.socket.onclose = () => {
                     console.log('Disconnected from Minecraft server');
                     this.connected = false;
+                    this.stopHeartbeat();
                 };
 
             } catch (error) {
@@ -731,11 +767,44 @@ class Scratch3MinecraftBlocks {
      * 切断
      */
     disconnect() {
+        // ハートビート停止
+        this.stopHeartbeat();
+
         if (this.socket) {
             this.socket.close();
             this.socket = null;
             this.connected = false;
             this.sessionId = null;
+            this.clientName = '';
+            this.clientRole = '';
+            this.activeClients = 0;
+        }
+    }
+
+    /**
+     * ハートビート開始
+     */
+    startHeartbeat() {
+        // 既存のハートビートを停止
+        this.stopHeartbeat();
+
+        // 30秒ごとにハートビートを送信
+        this.heartbeatInterval = setInterval(() => {
+            if (this.connected && this.socket) {
+                this.sendMessage({
+                    type: 'heartbeat'
+                });
+            }
+        }, 30000); // 30秒
+    }
+
+    /**
+     * ハートビート停止
+     */
+    stopHeartbeat() {
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
         }
     }
 
@@ -1096,6 +1165,27 @@ class Scratch3MinecraftBlocks {
     }
 
     /**
+     * 接続中のユーザー数を取得
+     */
+    getActiveClients() {
+        return this.activeClients;
+    }
+
+    /**
+     * 自分の名前を取得
+     */
+    getClientName() {
+        return this.clientName;
+    }
+
+    /**
+     * 自分の役割を取得
+     */
+    getClientRole() {
+        return this.clientRole;
+    }
+
+    /**
      * スラブレポーター
      * @param {object} args - ブロック引数
      * @param {string} args.SLAB - スラブの種類
@@ -1223,7 +1313,12 @@ class Scratch3MinecraftBlocks {
             case 'connect_response':
                 if (message.payload.success) {
                     this.sessionId = message.payload.sessionId;
+                    this.clientName = message.payload.clientName || '';
+                    this.clientRole = message.payload.role || '';
+                    this.activeClients = message.payload.serverInfo?.currentClients || 0;
                     console.log('Connected with session:', this.sessionId);
+                    console.log('Client name:', this.clientName, 'Role:', this.clientRole);
+                    console.log('Active clients:', this.activeClients);
                 } else {
                     console.error('Connection failed:', message.payload.errorMessage);
                 }
@@ -1269,6 +1364,14 @@ class Scratch3MinecraftBlocks {
 
             case 'event':
                 console.log('Event received:', message.payload);
+                break;
+
+            case 'heartbeat':
+                // ハートビートレスポンスから接続中のクライアント数を更新
+                if (message.payload && message.payload.activeClients !== undefined) {
+                    this.activeClients = message.payload.activeClients;
+                    console.log('Heartbeat: Active clients updated to', this.activeClients);
+                }
                 break;
 
             case 'error':

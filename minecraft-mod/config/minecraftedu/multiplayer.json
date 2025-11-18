@@ -1,0 +1,27 @@
+{
+  "enabled": true,
+  "maxClients": 10,
+  "autoGenerateTokens": true,
+  "clients": [
+    {
+      "name": "先生",
+      "token": "TEACHER",
+      "role": "HOST"
+    },
+    {
+      "name": "生徒1",
+      "token": "STUDENT01",
+      "role": "GUEST"
+    },
+    {
+      "name": "生徒2",
+      "token": "STUDENT02",
+      "role": "GUEST"
+    },
+    {
+      "name": "生徒3",
+      "token": "STUDENT03",
+      "role": "GUEST"
+    }
+  ]
+}

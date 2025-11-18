@@ -1,6 +1,8 @@
 package com.github.minecraftedu.commands;
 
 import com.github.minecraftedu.MinecraftEduMod;
+import com.github.minecraftedu.multiplayer.ClientSession;
+import com.github.minecraftedu.multiplayer.Permission;
 import com.google.gson.JsonObject;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,74 +24,187 @@ public class CommandExecutor {
 
     private final MinecraftServer server;
     private JsonObject lastResult;
+    private String lastError;
 
     public CommandExecutor(MinecraftServer server) {
         this.server = server;
         this.lastResult = new JsonObject();
+        this.lastError = null;
     }
 
-    public boolean execute(String action, JsonObject params) {
+    /**
+     * 権限チェック付きコマンド実行（マルチプレイヤー対応）
+     */
+    public boolean execute(String action, JsonObject params, ClientSession session) {
         try {
             lastResult = new JsonObject();
+            lastError = null;
 
-            switch (action) {
-                case "chat":
-                    return executeChat(params);
-
-                case "setBlock":
-                    return executeSetBlock(params);
-
-                case "getBlock":
-                    return executeGetBlock(params);
-
-                case "fillBlocks":
-                    return executeFillBlocks(params);
-
-                case "getPosition":
-                    return executeGetPosition(params);
-
-                case "getPlayerFacing":
-                    return executeGetPlayerFacing(params);
-
-                case "getBlockType":
-                    return executeGetBlockType(params);
-
-                case "summonEntity":
-                    return executeSummonEntity(params);
-
-                case "teleport":
-                    return executeTeleport(params);
-
-                case "setWeather":
-                    return executeSetWeather(params);
-
-                case "setTime":
-                    return executeSetTime(params);
-
-                case "setGameMode":
-                    return executeSetGameMode(params);
-
-                case "clearArea":
-                    return executeClearArea(params);
-
-                case "clearAllEntities":
-                    return executeClearAllEntities(params);
-
-                case "setGameRule":
-                    return executeSetGameRule(params);
-
-                default:
-                    MinecraftEduMod.LOGGER.warn("Unknown command: " + action);
-                    return false;
+            // 権限チェック
+            Permission requiredPermission = getRequiredPermission(action);
+            if (requiredPermission != null && !session.hasPermission(requiredPermission)) {
+                lastError = String.format("権限不足: %s 権限が必要です（役割: %s）",
+                    requiredPermission.getDescription(),
+                    session.getRole().getDisplayName()
+                );
+                MinecraftEduMod.LOGGER.warn(String.format("[%s] %s",
+                    session.getClientName(), lastError));
+                return false;
             }
+
+            // コマンド実行
+            return executeInternal(action, params);
+
         } catch (Exception e) {
+            lastError = e.getMessage();
             MinecraftEduMod.LOGGER.error("Error executing command: " + action, e);
             return false;
         }
     }
 
+    /**
+     * レガシー版（権限チェックなし）- 後方互換性のため残す
+     */
+    public boolean execute(String action, JsonObject params) {
+        try {
+            lastResult = new JsonObject();
+            lastError = null;
+
+            return executeInternal(action, params);
+        } catch (Exception e) {
+            lastError = e.getMessage();
+            MinecraftEduMod.LOGGER.error("Error executing command: " + action, e);
+            return false;
+        }
+    }
+
+    /**
+     * 内部コマンド実行（権限チェック済み）
+     */
+    private boolean executeInternal(String action, JsonObject params) {
+        switch (action) {
+            case "chat":
+                return executeChat(params);
+
+            case "setBlock":
+                return executeSetBlock(params);
+
+            case "getBlock":
+                return executeGetBlock(params);
+
+            case "fillBlocks":
+                return executeFillBlocks(params);
+
+            case "getPosition":
+                return executeGetPosition(params);
+
+            case "getPlayerFacing":
+                return executeGetPlayerFacing(params);
+
+            case "getBlockType":
+                return executeGetBlockType(params);
+
+            case "summonEntity":
+                return executeSummonEntity(params);
+
+            case "teleport":
+                return executeTeleport(params);
+
+            case "setWeather":
+                return executeSetWeather(params);
+
+            case "setTime":
+                return executeSetTime(params);
+
+            case "setGameMode":
+                return executeSetGameMode(params);
+
+            case "clearArea":
+                return executeClearArea(params);
+
+            case "clearAllEntities":
+                return executeClearAllEntities(params);
+
+            case "setGameRule":
+                return executeSetGameRule(params);
+
+            default:
+                MinecraftEduMod.LOGGER.warn("Unknown command: " + action);
+                lastError = "Unknown command: " + action;
+                return false;
+        }
+    }
+
+    /**
+     * アクションに必要な権限を取得
+     */
+    private Permission getRequiredPermission(String action) {
+        switch (action) {
+            case "chat":
+                return Permission.CHAT;
+
+            case "setBlock":
+                return Permission.PLACE_BLOCK;
+
+            case "getBlock":
+            case "getBlockType":
+                return Permission.GET_BLOCK;
+
+            case "fillBlocks":
+                return Permission.FILL_BLOCKS;
+
+            case "getPosition":
+                return Permission.GET_POSITION;
+
+            case "getPlayerFacing":
+                return Permission.GET_FACING;
+
+            case "summonEntity":
+                return Permission.SUMMON_ENTITY;
+
+            case "teleport":
+                return Permission.TELEPORT;
+
+            case "setWeather":
+                return Permission.SET_WEATHER;
+
+            case "setTime":
+                return Permission.SET_TIME;
+
+            case "setGameMode":
+                return Permission.SET_GAMEMODE;
+
+            case "clearArea":
+                return Permission.CLEAR_AREA;
+
+            case "clearAllEntities":
+                return Permission.CLEAR_ENTITIES;
+
+            case "setGameRule":
+                return Permission.SET_GAMERULE;
+
+            default:
+                return null; // 権限不要
+        }
+    }
+
     public JsonObject getLastResult() {
         return lastResult;
+    }
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    /**
+     * チャットメッセージを送信（外部から呼び出し可能）
+     */
+    public void sendChatMessage(String message) {
+        server.execute(() -> {
+            server.getPlayerList().getPlayers().forEach(player -> {
+                player.sendSystemMessage(net.minecraft.network.chat.Component.literal(message));
+            });
+        });
     }
 
     private boolean executeChat(JsonObject params) {
