@@ -3,7 +3,11 @@
     "allow": [
       "Bash(git remote add:*)",
       "Bash(git fetch:*)",
-      "Bash(cmd /c \"echo 3 | daily-sync.bat 1\")"
+      "Bash(cmd /c \"echo 3 | daily-sync.bat 1\")",
+      "Bash(git cherry-pick:*)",
+      "Bash(git merge-base:*)",
+      "Bash(scratch-client/scratch-vm/src/extensions/scratch3_minecraft/index.js.basic-temp)",
+      "Bash(python merge_extensions_v2.py:*)"
     ],
     "deny": [],
     "ask": []
